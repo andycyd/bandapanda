@@ -1,9 +1,12 @@
 package pxc.bandapanda;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -14,8 +17,15 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import pxc.bandapanda.R;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -75,6 +85,9 @@ public class BandaPanda extends FragmentActivity {
 		//Set up the ViewPager with the sections adapter.
     	mViewPager = (ViewPager) findViewById(R.id.pager);
     	mViewPager.setAdapter(mSectionsPagerAdapter);
+    	
+    	System.out.println(User.getInstance().getId());
+    	System.out.println(User.getInstance().getToken());
     }
     
     
@@ -84,6 +97,7 @@ public class BandaPanda extends FragmentActivity {
     
     
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -132,7 +146,7 @@ public class BandaPanda extends FragmentActivity {
     
 public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     	
-    	/*protected String getASCIIContentFromEntity(HttpEntity entity) throws IllegalStateException, IOException {
+    	protected String getASCIIContentFromEntity(HttpEntity entity) throws IllegalStateException, IOException {
     		InputStream in = entity.getContent();
     		StringBuffer out = new StringBuffer();
     		int n = 1;
@@ -142,7 +156,7 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     			if (n>0) out.append(new String(b, 0, n));
     		}
     		return out.toString();
-    	}*/
+    	}
 
     	@Override
     	protected String doInBackground(Void... params) {
@@ -151,7 +165,7 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     		HttpClient httpClient = new DefaultHttpClient();
     		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
     		nameValuePairs.add(new BasicNameValuePair("user[email]","test@example.com"));
-    		nameValuePairs.add(new BasicNameValuePair("user[password]","testing"));
+    		nameValuePairs.add(new BasicNameValuePair("user[password]","tesing"));
     		
     		HttpContext localContext = new BasicHttpContext();
     		HttpPost httppost = new HttpPost("http://polar-thicket-1771.herokuapp.com/users/sign_in.json");
@@ -164,6 +178,15 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     		try {
     			HttpResponse response = httpClient.execute(httppost, localContext);
     			StatusLine stl = response.getStatusLine();
+    			HttpEntity ent = response.getEntity();
+    			if(ent != null){
+    				String src = EntityUtils.toString(ent);
+    				JSONObject result = new JSONObject(src);
+        			System.out.println(src);
+        			User.getInstance().setId(Integer.parseInt(result.getString("user_id")));
+        			User.getInstance().setToken(result.getString("auth_token"));
+        			System.out.println(User.getInstance().getId());
+    			}
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
     			System.out.println("Error"+e.getLocalizedMessage());
@@ -174,13 +197,28 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     	protected void onPostExecute(String results) {
     		if(results.equals("200")){
     			System.out.println("Ok");
-				new BandaPanda().goRegister();
+				goRegister();
 			}
 			else{
 				System.out.println("Error en la busqueda. Vuelve a intentar");
 			}
     	}
     }    
+
+private Dialog crearDialogoAlerta()
+{
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+ 
+    builder.setTitle("Informacion");
+    builder.setMessage("Esto es un mensaje de alerta.");
+    builder.setPositiveButton("OK", new OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            dialog.cancel();
+        }
+    });
+ 
+    return builder.create();
+}
 
 }
 

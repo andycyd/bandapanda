@@ -1,0 +1,40 @@
+package pxc.bandapanda;
+
+public class User {
+
+	
+	    
+		private int ID;
+		private String token;
+		private static User instance;
+		
+		static{
+			instance = new User();
+		}
+		
+		private User(){
+		}
+		
+		public static User getInstance(){
+			return User.instance;
+		}
+		
+		public int getId(){
+	    	return ID;
+	    }
+		
+		public String getToken(){
+			return token;
+		}
+		
+		public void setId(int id2){
+			this.ID = id2;
+		}
+		
+		public void setToken(String token2){
+			this.token = token2;
+		}
+		
+	}
+
+
