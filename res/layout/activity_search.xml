@@ -7,11 +7,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
-
+
             <SearchView
                 android:id="@+id/searchView1"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:onClick="search" >
+
             </SearchView>
         </LinearLayout>
 

@@ -26,6 +26,8 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -74,6 +76,9 @@ public class BandaPanda extends FragmentActivity {
     		case R.id.loginbutton:
         		new LongRunningGetIO().execute();
     			break;
+        	case R.id.searchView1:
+        		System.out.println("Hola"); break;
+        	
     		}
     	
     }
@@ -85,14 +90,17 @@ public class BandaPanda extends FragmentActivity {
 		//Set up the ViewPager with the sections adapter.
     	mViewPager = (ViewPager) findViewById(R.id.pager);
     	mViewPager.setAdapter(mSectionsPagerAdapter);
-    	
-    	System.out.println(User.getInstance().getId());
-    	System.out.println(User.getInstance().getToken());
+    }
+    
+    public void search(){
+    	System.out.println("Hola");
     }
     
     
-    public void redirectRegister(){
-    	
+    public void redirectRegister(View view){
+    	Intent httpIntent = new Intent(Intent.ACTION_VIEW);
+    	httpIntent.setData(Uri.parse("http://polar-thicket-1771.herokuapp.com/users/sign_up"));
+    	startActivity(httpIntent);       
     }
     
     
@@ -160,12 +168,14 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
 
     	@Override
     	protected String doInBackground(Void... params) {
-    		//TextView user = (TextView)findViewById(R.id.editText1);
-        	//TextView pass = (TextView)findViewById(R.id.textpasswd);
+    		TextView user = (TextView)findViewById(R.id.editText1);
+        	TextView pass = (TextView)findViewById(R.id.textpasswd);
     		HttpClient httpClient = new DefaultHttpClient();
     		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
     		nameValuePairs.add(new BasicNameValuePair("user[email]","test@example.com"));
-    		nameValuePairs.add(new BasicNameValuePair("user[password]","tesing"));
+    		nameValuePairs.add(new BasicNameValuePair("user[password]","testing"));
+    		//nameValuePairs.add(new BasicNameValuePair("user[email]",user.getText().toString()));
+    		//nameValuePairs.add(new BasicNameValuePair("user[password]",pass.getText().toString()));
     		
     		HttpContext localContext = new BasicHttpContext();
     		HttpPost httppost = new HttpPost("http://polar-thicket-1771.herokuapp.com/users/sign_in.json");
@@ -182,10 +192,9 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     			if(ent != null){
     				String src = EntityUtils.toString(ent);
     				JSONObject result = new JSONObject(src);
-        			System.out.println(src);
         			User.getInstance().setId(Integer.parseInt(result.getString("user_id")));
         			User.getInstance().setToken(result.getString("auth_token"));
-        			System.out.println(User.getInstance().getId());
+        			User.getInstance().setUser(user.getText().toString());
     			}
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
@@ -194,31 +203,26 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     		}
     	}
     	
-    	protected void onPostExecute(String results) {
+    	@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
     		if(results.equals("200")){
     			System.out.println("Ok");
 				goRegister();
 			}
 			else{
-				System.out.println("Error en la busqueda. Vuelve a intentar");
+
+    			AlertDialog alert = new AlertDialog.Builder(BandaPanda.this).create();
+    			alert.setTitle("Login error");
+    			alert.setMessage("User/Password incorrect.");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			alert.show();
 			}
     	}
     }    
-
-private Dialog crearDialogoAlerta()
-{
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
- 
-    builder.setTitle("Informacion");
-    builder.setMessage("Esto es un mensaje de alerta.");
-    builder.setPositiveButton("OK", new OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
-            dialog.cancel();
-        }
-    });
- 
-    return builder.create();
-}
 
 }
 

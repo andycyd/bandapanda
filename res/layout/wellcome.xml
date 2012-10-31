@@ -70,7 +70,7 @@
         android:layout_marginTop="32dp"
         android:text="Crea una compta"
         android:textAppearance="?android:attr/textAppearanceMedium" />
-
+
     <TextView
         android:id="@+id/hiperb"
         android:layout_width="wrap_content"
@@ -78,6 +78,7 @@
         android:layout_alignBaseline="@+id/createacount"
         android:layout_alignBottom="@+id/createacount"
         android:layout_toRightOf="@+id/createacount"
+        android:clickable="true"
         android:onClick="redirectRegister"
         android:text=" aquí"
         android:textAppearance="?android:attr/textAppearanceMedium"
