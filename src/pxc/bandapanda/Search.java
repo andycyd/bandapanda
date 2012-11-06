@@ -1,9 +1,16 @@
 package pxc.bandapanda;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import pxc.bandapanda.BandaPanda.LongRunningGetIO;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -17,6 +24,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class Search extends FragmentActivity {
@@ -28,7 +37,7 @@ public class Search extends FragmentActivity {
      * to switch to a {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
-
+   public static Context context;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -42,7 +51,7 @@ public class Search extends FragmentActivity {
         // of the app.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-
+        context = this;
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -102,19 +111,86 @@ public class Search extends FragmentActivity {
      * A dummy fragment representing a section of the app, but that simply displays dummy text.
      */
     public static class DummySectionFragment extends Fragment {
+    	
+    	Drawable drawable;
         public DummySectionFragment() {
         }
 
         public static final String ARG_SECTION_NUMBER = "section_number";
 
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+        public synchronized View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
-            TextView textView = new TextView(getActivity());
-            textView.setGravity(Gravity.CENTER);
-            Bundle args = getArguments();
-            textView.setText(Integer.toString(args.getInt(ARG_SECTION_NUMBER)));
-            return textView;
+
+        	LinearLayout layout1 = new LinearLayout(context);
+            LinearLayout vertical1 = new LinearLayout(context);
+            vertical1.setOrientation(1);
+            final TextView artist = new TextView(getActivity());
+            artist.setText("Artista 1");
+            vertical1.addView(artist);
+            final TextView album = new TextView(getActivity());
+            album.setText("Abum 1");
+            vertical1.addView(album);
+            
+            layout1.setOrientation(0);
+            LongRunningGetIO lrgio =    new LongRunningGetIO();
+            lrgio.execute();
+            
+            while(!lrgio.isCancelled()){
+               } 
+            final ImageView image = new ImageView(context);
+            image.setImageDrawable(drawable);
+            
+            layout1.addView(image);
+            layout1.addView(vertical1);
+            
+            LinearLayout finallayout = new LinearLayout(context);
+            finallayout.setOrientation(1);
+            finallayout.addView(layout1);
+            
+            
+            
+            return finallayout;
         }
+        
+        public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
+
+        	
+
+            public Object fetch(String address) throws MalformedURLException, IOException{
+    			URL url = new URL(address);
+    			Object content = url.getContent();
+    			return content;
+            	
+            }
+            
+
+            private Drawable ImageOperations(Context ctx, String url) {
+                try {
+                    InputStream is = (InputStream) this.fetch(url);
+                    Drawable d = Drawable.createFromStream(is, "src");
+                    return d;
+                } catch (MalformedURLException e) {
+                    return null;
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+        	@Override
+			protected String doInBackground(Void... params) {
+    			try {
+                    drawable = ImageOperations(context,"http://www.seguridadaerea.es/NR/rdonlyres/CD31C898-A4DE-4FCB-BAC1-7540E7967646/36873/icono_dcho_info.gif");
+                    this.cancel(true);
+    			} catch (Exception ex) {
+    				return null;
+    			}
+               
+				return null;
+			}
+    
+        }
+        
     }
+    
+    
 }
