@@ -1,5 +1,6 @@
 package pxc.bandapanda;
 
+import pxc.bandapanda.BandaPanda.LongRunningGetIO;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -54,6 +55,11 @@ public class Search extends FragmentActivity {
         return true;
     }
 
+    
+    public void testClick(View view){
+    	System.out.println("test OK");
+    }
+    
     
 
 
