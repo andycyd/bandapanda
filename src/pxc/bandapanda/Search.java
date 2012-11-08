@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Vector;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
@@ -79,13 +81,15 @@ public class Search extends FragmentActivity {
     	
     	private final Context context;
     	private int numSongs;
+    	private int finished;
 
-    	Drawable drawable;
+    	Vector<Drawable> drawable;
     	
     	public CustomPageAdapter(Context context, int n){
     		super();
     		this.numSongs = n;
     		this.context = context;
+    		drawable = new Vector<Drawable>();
     	}
     	
     	@Override
@@ -130,9 +134,21 @@ public class Search extends FragmentActivity {
         
         @Override
         public synchronized Object instantiateItem(View collection,int position){
-        	System.out.println("LLAMANDO");
         	LinearLayout finallayout = new LinearLayout(context);
         	finallayout.setOrientation(1);
+    		LongRunningGetIO lrgio = new LongRunningGetIO();
+    		lrgio.execute();
+
+
+            ProgressDialog pd = new ProgressDialog(context);
+
+            	pd.setMessage("Searching...");
+            	pd.setCancelable(false);
+            	pd.setIndeterminate(true);
+            	pd.show();
+    		//while(!lrgio.isCancelled()){}
+    		while(finished != 1); 
+    		pd.dismiss();
         	for(int i = 0; i <= numSongs+1; ++i){
         		LinearLayout layout1 = new LinearLayout(context);
         		LinearLayout vertical1 = new LinearLayout(context);
@@ -147,17 +163,8 @@ public class Search extends FragmentActivity {
         		vertical1.addView(album);
         		
         		layout1.setOrientation(0);
-        		LongRunningGetIO lrgio =    new LongRunningGetIO();
-        		lrgio.execute();
-        		
-        		while(!lrgio.isCancelled()){
-        		} 
         		final ImageView image = new ImageView(context);
-        		image.setImageDrawable(drawable);
-        		int iwidth = image.getWidth();
-        		float sc = (width/iwidth)*(1/5);
-        		image.setScaleX(sc);
-        		image.setScaleY(sc);
+        		image.setImageDrawable((Drawable) drawable.get(0));
         		
         		layout1.addView(image);
         		layout1.addView(vertical1);
@@ -185,8 +192,13 @@ public class Search extends FragmentActivity {
         
         public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
 
-        	
+        	ProgressDialog pd;
 
+        	
+        	public LongRunningGetIO(){
+
+        	}
+        	
             public Object fetch(String address) throws MalformedURLException, IOException{
     			URL url = new URL(address);
     			Object content = url.getContent();
@@ -206,11 +218,21 @@ public class Search extends FragmentActivity {
                     return null;
                 }
             }
+            
+           @Override
+           protected void onPreExecute(){
+           }
+           
+           @Override 
+           protected void onPostExecute(final String s){
+           }
         	@Override
 			protected String doInBackground(Void... params) {
     			try {
-                    drawable = ImageOperations(context,"http://racketmag.com/wp-content/uploads/2008/10/appeal-reason-rise-against-cd-cover-art.thumbnail.jpg");
-                    this.cancel(true);
+
+    	        	for(int i = 0; i <= numSongs+1; ++i){
+    	        		drawable.add(ImageOperations(context,"http://racketmag.com/wp-content/uploads/2008/10/appeal-reason-rise-against-cd-cover-art.thumbnail.jpg"));
+    	        	}finished = 1;
     			} catch (Exception ex) {
     				return null;
     			}
