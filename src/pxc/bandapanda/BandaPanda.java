@@ -20,6 +20,8 @@ import org.json.JSONObject;
 
 import pxc.bandapanda.R;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -32,11 +34,14 @@ import android.widget.TextView;
 
 public class BandaPanda extends FragmentActivity {
 
+	
+	Context context;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.wellcome);
+        context = this;
         
     }
 
@@ -72,6 +77,21 @@ public class BandaPanda extends FragmentActivity {
     
 public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
 
+	
+	    ProgressDialog pd;
+	    
+	    @Override
+	    protected void onPreExecute(){
+
+		    pd = new ProgressDialog(context);
+
+	       	pd.setMessage("Logging in...");
+	       	pd.setCancelable(false);
+	       	pd.setIndeterminate(true);
+	       	pd.show();
+        }
+	    
+	    
     	@Override
     	protected String doInBackground(Void... params) {
     		TextView user = (TextView)findViewById(R.id.editText1);
@@ -114,6 +134,7 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
 		protected void onPostExecute(String results) {
     		if(results.equals("200")){
 				goSearch();
+				pd.dismiss();
 			}
 			else if(results.equals("401")){
 

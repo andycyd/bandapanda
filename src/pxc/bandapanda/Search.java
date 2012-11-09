@@ -45,6 +45,8 @@ public class Search extends FragmentActivity {
     ViewPager mViewPager;
     int numSongs;
     int width;
+    Vector<Drawable> drawable;
+    Vector<Song> resSearch;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,9 +55,14 @@ public class Search extends FragmentActivity {
     	disp.getSize(point);
     	width = point.x;
         super.onCreate(savedInstanceState);
-        numSongs = 6;
+        numSongs = 0;
         context = this;
+        drawable = new Vector<Drawable>();
+        resSearch = new Vector<Song>();
         setContentView(R.layout.activity_search);
+		pageAdapter = new CustomPageAdapter(context);
+		mViewPager = (ViewPager) findViewById(R.id.pager);
+		mViewPager.setAdapter(pageAdapter);
     }
 
     @Override
@@ -67,8 +74,14 @@ public class Search extends FragmentActivity {
     
     public void testClick(View view){
     	numSongs++;
+    	
+    	//falta llamada api
+    	
+    	//Song s = new Song(0, "Song 1", 0, "albm 1", 0, "group 1", "http://racketmag.com/wp-content/uploads/2008/10/appeal-reason-rise-against-cd-cover-art.thumbnail.jpg", "aaa");
+    	
+    	
     	try{
-    		pageAdapter = new CustomPageAdapter(context,numSongs);
+    		pageAdapter = new CustomPageAdapter(context);
     		mViewPager = (ViewPager) findViewById(R.id.pager);
     		mViewPager.setAdapter(pageAdapter);
     	}catch(Exception e){
@@ -80,14 +93,13 @@ public class Search extends FragmentActivity {
     public class CustomPageAdapter extends PagerAdapter{
     	
     	private final Context context;
-    	private int numSongs;
     	private int finished;
 
-    	Vector<Drawable> drawable;
     	
-    	public CustomPageAdapter(Context context, int n){
+    	
+    	public CustomPageAdapter(Context context){
     		super();
-    		this.numSongs = n;
+    		finished = 0;
     		this.context = context;
     		drawable = new Vector<Drawable>();
     	}
@@ -135,21 +147,17 @@ public class Search extends FragmentActivity {
         @Override
         public synchronized Object instantiateItem(View collection,int position){
         	LinearLayout finallayout = new LinearLayout(context);
+        	finished = 0;
         	finallayout.setOrientation(1);
     		LongRunningGetIO lrgio = new LongRunningGetIO();
     		lrgio.execute();
 
 
-            ProgressDialog pd = new ProgressDialog(context);
-
-            	pd.setMessage("Searching...");
-            	pd.setCancelable(false);
-            	pd.setIndeterminate(true);
-            	pd.show();
+            
     		//while(!lrgio.isCancelled()){}
     		while(finished != 1); 
-    		pd.dismiss();
-        	for(int i = 0; i <= numSongs+1; ++i){
+    		//pd.dismiss();
+        	for(int i = 0; i < numSongs; ++i){
         		LinearLayout layout1 = new LinearLayout(context);
         		LinearLayout vertical1 = new LinearLayout(context);
         		vertical1.setOrientation(1);
@@ -164,7 +172,7 @@ public class Search extends FragmentActivity {
         		
         		layout1.setOrientation(0);
         		final ImageView image = new ImageView(context);
-        		image.setImageDrawable((Drawable) drawable.get(0));
+        		image.setImageDrawable((Drawable) drawable.get(i));
         		
         		layout1.addView(image);
         		layout1.addView(vertical1);
@@ -221,16 +229,24 @@ public class Search extends FragmentActivity {
             
            @Override
            protected void onPreExecute(){
+                System.out.println("Empieza dialog");
+        	    pd = new ProgressDialog(context);
+              	pd.setMessage("Searching...");
+              	pd.setCancelable(false);
+              	pd.setIndeterminate(true);
+              	pd.show();
            }
            
            @Override 
            protected void onPostExecute(final String s){
+        	   System.out.println("Acaba");
+        	   pd.dismiss();
            }
         	@Override
 			protected String doInBackground(Void... params) {
     			try {
 
-    	        	for(int i = 0; i <= numSongs+1; ++i){
+    	        	for(int i = 0; i < numSongs; ++i){
     	        		drawable.add(ImageOperations(context,"http://racketmag.com/wp-content/uploads/2008/10/appeal-reason-rise-against-cd-cover-art.thumbnail.jpg"));
     	        	}finished = 1;
     			} catch (Exception ex) {
