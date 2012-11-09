@@ -46,6 +46,7 @@ public class Search extends FragmentActivity {
     int numSongs;
     int width;
     Vector<Drawable> drawable;
+    Vector<Drawable> drawable2;
     Vector<Song> resSearch;
 
     @Override
@@ -58,6 +59,7 @@ public class Search extends FragmentActivity {
         numSongs = 0;
         context = this;
         drawable = new Vector<Drawable>();
+        drawable2 = new Vector<Drawable>();
         resSearch = new Vector<Song>();
         setContentView(R.layout.activity_search);
 		pageAdapter = new CustomPageAdapter(context);
@@ -84,6 +86,19 @@ public class Search extends FragmentActivity {
     		pageAdapter = new CustomPageAdapter(context);
     		mViewPager = (ViewPager) findViewById(R.id.pager);
     		mViewPager.setAdapter(pageAdapter);
+    		ScrollView scroll = (ScrollView) mViewPager.getChildAt(1);
+    		LinearLayout finallayout = (LinearLayout) scroll.getChildAt(0);
+    		LinearLayout layout1 = (LinearLayout) finallayout.getChildAt(0);
+    		ImageView image = (ImageView) layout1.getChildAt(0);
+    		image.setImageDrawable((Drawable) drawable2.get(0));
+    		layout1.addView(image, 0);
+    		finallayout.addView(layout1, 0);
+    		scroll.addView(finallayout, 0);
+    		mViewPager.addView(scroll, 1);
+    		
+    		System.out.println("numCanciones : ");
+    		System.out.println(finallayout.getChildCount());
+    		
     	}catch(Exception e){
     		e.printStackTrace();
     	}
@@ -248,7 +263,9 @@ public class Search extends FragmentActivity {
 
     	        	for(int i = 0; i < numSongs; ++i){
     	        		drawable.add(ImageOperations(context,"http://racketmag.com/wp-content/uploads/2008/10/appeal-reason-rise-against-cd-cover-art.thumbnail.jpg"));
-    	        	}finished = 1;
+    	        	}
+    	        	drawable2.add(ImageOperations(context,"http://oxaa.us/i/Belfast%20cover.jpg"));
+    	        	finished = 1;
     			} catch (Exception ex) {
     				return null;
     			}
