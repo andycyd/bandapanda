@@ -1,5 +1,7 @@
 package pxc.bandapanda;
 
+import android.graphics.drawable.Drawable;
+
 public class Song {
 	
 	private int ID;
@@ -10,10 +12,11 @@ public class Song {
 	private String group;
 	private String cover;
 	private String url;
+	private int coverDrawablePointer;
 	
 	
 	
-	public Song(int id, String tit,int ida, String alb, int idg, String gr, String cov, String u){
+	public Song(int id, String tit,int ida, String alb, int idg, String gr, String cov, int covP, String u){
 		ID = id;
 		title = tit;
 		IDalbum = ida;
@@ -22,6 +25,7 @@ public class Song {
 		group = gr;
 		cover = cov;
 		url = u;
+		setCoverDrawablePointer(covP);
 	}
 
 	public int getID() {
@@ -108,6 +112,14 @@ public class Song {
 
 	public void setIDgroup(int iDgroup) {
 		IDgroup = iDgroup;
+	}
+
+	public int getCoverDrawablePointer() {
+		return coverDrawablePointer;
+	}
+
+	public void setCoverDrawablePointer(int coverDrawablePointer) {
+		this.coverDrawablePointer = coverDrawablePointer;
 	}
 
 }

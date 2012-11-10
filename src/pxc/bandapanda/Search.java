@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Vector;
 
+import android.R.bool;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Point;
@@ -20,6 +21,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -45,9 +48,12 @@ public class Search extends FragmentActivity {
     ViewPager mViewPager;
     int numSongs;
     int width;
+    Vector<String> urlDrawables;
     Vector<Drawable> drawable;
-    Vector<Drawable> drawable2;
     Vector<Song> resSearch;
+    int currentPage;
+    int finished;
+    
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,15 +62,16 @@ public class Search extends FragmentActivity {
     	disp.getSize(point);
     	width = point.x;
         super.onCreate(savedInstanceState);
-        numSongs = 0;
+        numSongs = 3;
         context = this;
         drawable = new Vector<Drawable>();
-        drawable2 = new Vector<Drawable>();
+        urlDrawables = new Vector<String>();
         resSearch = new Vector<Song>();
         setContentView(R.layout.activity_search);
 		pageAdapter = new CustomPageAdapter(context);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(pageAdapter);
+		currentPage = -1;
     }
 
     @Override
@@ -78,11 +85,59 @@ public class Search extends FragmentActivity {
     	numSongs++;
     	
     	//falta llamada api
+    	resSearch = new Vector<Song>();
+    	for(int i = 0; i < numSongs; ++i){
+    		Song s = new Song(0, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
+    		resSearch.add(s);
+    	}
+    	currentPage = mViewPager.getCurrentItem();
+    	//drawable = new Vector<Drawable>();
+    	//urlDrawables = new Vector<String>();
+    	LongRunningGetIO lrgio = new LongRunningGetIO();
+		lrgio.execute();
+		while(finished != 1); 
     	
-    	//Song s = new Song(0, "Song 1", 0, "albm 1", 0, "group 1", "http://racketmag.com/wp-content/uploads/2008/10/appeal-reason-rise-against-cd-cover-art.thumbnail.jpg", "aaa");
-    	
-    	
-    	try{
+    	if(currentPage == 0){
+    		ScrollView scroll = (ScrollView) mViewPager.getChildAt(0);
+    		LinearLayout finallayout = new LinearLayout(context);
+        	finallayout.setOrientation(1);
+        	for(int i = 0; i < numSongs; ++i){
+        		LinearLayout layout1 = new LinearLayout(context);
+        		LinearLayout vertical1 = new LinearLayout(context);
+        		vertical1.setOrientation(1);
+        		final TextView artist = new TextView(context);
+        		artist.setText(resSearch.get(i).getTitle());
+        		artist.setTextSize(25);
+        		vertical1.addView(artist);
+        		final TextView album = new TextView(context);
+        		album.setText(resSearch.get(i).getGroup());
+        		album.setTextSize(18);
+        		vertical1.addView(album);
+        		
+        		layout1.setOrientation(0);
+        		final ImageView image = new ImageView(context);
+        		System.out.println("DrawablePointer: ");
+        		System.out.println(resSearch.get(i).getCoverDrawablePointer());
+        		if(resSearch.get(i).getCoverDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
+        		else image.setImageDrawable((Drawable) drawable.get(resSearch.get(i).getCoverDrawablePointer()));
+        		
+        		layout1.addView(image);
+        		layout1.addView(vertical1);
+            
+            
+        		
+        		finallayout.addView(layout1);
+        	}
+        	scroll.removeAllViews();
+            scroll.addView(finallayout);
+            mViewPager.removeViewAt(0);
+            mViewPager.addView(scroll, 0);
+            //ScrollView scroll1 = new ScrollView(context);
+            //ScrollView scroll2 = new ScrollView(context);
+            //mViewPager.addView(scroll1, 0);
+            //mViewPager.addView(scroll2, 2);
+    	}
+    	/*try{
     		pageAdapter = new CustomPageAdapter(context);
     		mViewPager = (ViewPager) findViewById(R.id.pager);
     		mViewPager.setAdapter(pageAdapter);
@@ -101,14 +156,14 @@ public class Search extends FragmentActivity {
     		
     	}catch(Exception e){
     		e.printStackTrace();
-    	}
+    	}*/
     }
     
     
     public class CustomPageAdapter extends PagerAdapter{
     	
     	private final Context context;
-    	private int finished;
+    	//private int finished;
 
     	
     	
@@ -161,7 +216,10 @@ public class Search extends FragmentActivity {
         
         @Override
         public synchronized Object instantiateItem(View collection,int position){
-        	LinearLayout finallayout = new LinearLayout(context);
+        	ScrollView scroll = new ScrollView(context);
+            ((ViewPager) collection).addView(scroll,position);
+            return scroll;
+        	/*LinearLayout finallayout = new LinearLayout(context);
         	finished = 0;
         	finallayout.setOrientation(1);
     		LongRunningGetIO lrgio = new LongRunningGetIO();
@@ -199,7 +257,7 @@ public class Search extends FragmentActivity {
             ScrollView scroll = new ScrollView(context);
             scroll.addView(finallayout);
             ((ViewPager) collection).addView(scroll,0);
-            return scroll;
+            return scroll;*/
         }
 
         @Override
@@ -211,70 +269,96 @@ public class Search extends FragmentActivity {
             }
             return null;
         }
-        
-        
-        public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
-
-        	ProgressDialog pd;
-
-        	
-        	public LongRunningGetIO(){
-
-        	}
-        	
-            public Object fetch(String address) throws MalformedURLException, IOException{
-    			URL url = new URL(address);
-    			Object content = url.getContent();
-    			return content;
-            	
-            }
-            
-
-            private Drawable ImageOperations(Context ctx, String url) {
-                try {
-                    InputStream is = (InputStream) this.fetch(url);
-                    Drawable d = Drawable.createFromStream(is, "src");
-                    return d;
-                } catch (MalformedURLException e) {
-                    return null;
-                } catch (IOException e) {
-                    return null;
-                }
-            }
-            
-           @Override
-           protected void onPreExecute(){
-                System.out.println("Empieza dialog");
-        	    pd = new ProgressDialog(context);
-              	pd.setMessage("Searching...");
-              	pd.setCancelable(false);
-              	pd.setIndeterminate(true);
-              	pd.show();
-           }
-           
-           @Override 
-           protected void onPostExecute(final String s){
-        	   System.out.println("Acaba");
-        	   pd.dismiss();
-           }
-        	@Override
-			protected String doInBackground(Void... params) {
-    			try {
-
-    	        	for(int i = 0; i < numSongs; ++i){
-    	        		drawable.add(ImageOperations(context,"http://racketmag.com/wp-content/uploads/2008/10/appeal-reason-rise-against-cd-cover-art.thumbnail.jpg"));
-    	        	}
-    	        	drawable2.add(ImageOperations(context,"http://oxaa.us/i/Belfast%20cover.jpg"));
-    	        	finished = 1;
-    			} catch (Exception ex) {
-    				return null;
-    			}
-               
-				return null;
-			}
-    
-        }
     	
     }
     
+    public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
+
+    	ProgressDialog pd;
+
+    	
+    	public LongRunningGetIO(){
+
+    	}
+    	
+        public Object fetch(String address) throws MalformedURLException, IOException{
+			URL url = new URL(address);
+			Object content = url.getContent();
+			return content;
+        	
+        }
+        
+
+        private Drawable ImageOperations(Context ctx, String url) {
+            try {
+                InputStream is = (InputStream) this.fetch(url);
+                Drawable d = Drawable.createFromStream(is, "src");
+                return d;
+            } catch (MalformedURLException e) {
+                return null;
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        
+       @Override
+       protected void onPreExecute(){
+            System.out.println("Empieza dialog");
+    	    pd = new ProgressDialog(context);
+          	pd.setMessage("Searching...");
+          	pd.setCancelable(false);
+          	pd.setIndeterminate(true);
+          	pd.show();
+       }
+       
+       @Override 
+       protected void onPostExecute(final String s){
+    	   System.out.println("Acaba");
+    	   pd.dismiss();
+       }
+    	@Override
+		protected String doInBackground(Void... params) {
+			try {
+				String currentUrl;
+	        	for(int i = 0; i < numSongs; ++i){
+	        		currentUrl = resSearch.get(i).getCover();
+					if(!urlDrawables.contains(currentUrl)){
+						System.out.println("Current Url:");
+		        		System.out.println(currentUrl);
+						urlDrawables.add(currentUrl);
+						drawable.add(ImageOperations(context,currentUrl));
+						Song aux = resSearch.get(i);
+						resSearch.remove(i);
+						aux.setCoverDrawablePointer(drawable.size()-1);
+						resSearch.add(i, aux);
+					}
+					else{
+						int trob = 0;
+						int a = 0;
+						while(trob == 0){
+							if(urlDrawables.get(a).equals(currentUrl)){
+								Song aux = resSearch.get(i);
+								resSearch.remove(i);
+								aux.setCoverDrawablePointer(a);
+								resSearch.add(i, aux);
+								trob = 1;
+							}
+							else a++;
+						}
+					}
+	        	}
+	        	finished = 1;
+			} catch (Exception ex) {
+				return null;
+			}
+           
+			return null;
+		}
+
+    }
+
+
 }
+
+
+
