@@ -22,6 +22,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -29,6 +30,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -53,6 +55,7 @@ public class Search extends FragmentActivity {
     Vector<Song> resSearch;
     int currentPage;
     int finished;
+    int windowWidth;
     
 
     @Override
@@ -72,6 +75,9 @@ public class Search extends FragmentActivity {
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(pageAdapter);
 		currentPage = -1;
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		windowWidth = metrics.widthPixels;
     }
 
     @Override
@@ -87,7 +93,7 @@ public class Search extends FragmentActivity {
     	//falta llamada api
     	resSearch = new Vector<Song>();
     	for(int i = 0; i < numSongs; ++i){
-    		Song s = new Song(0, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
+    		Song s = new Song(i, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
     		resSearch.add(s);
     	}
     	currentPage = mViewPager.getCurrentItem();
@@ -102,7 +108,7 @@ public class Search extends FragmentActivity {
     		LinearLayout finallayout = new LinearLayout(context);
         	finallayout.setOrientation(1);
         	for(int i = 0; i < numSongs; ++i){
-        		LinearLayout layout1 = new LinearLayout(context);
+        		final LinearLayout layout1 = new LinearLayout(context);
         		LinearLayout vertical1 = new LinearLayout(context);
         		vertical1.setOrientation(1);
         		final TextView artist = new TextView(context);
@@ -113,18 +119,29 @@ public class Search extends FragmentActivity {
         		album.setText(resSearch.get(i).getGroup());
         		album.setTextSize(18);
         		vertical1.addView(album);
+        		final TextView songid = new TextView(context);
+        		songid.setText(String.valueOf(resSearch.get(i).getID()));
+        		songid.setTextSize(0);
+        		vertical1.addView(songid);
         		
         		layout1.setOrientation(0);
         		final ImageView image = new ImageView(context);
-        		System.out.println("DrawablePointer: ");
-        		System.out.println(resSearch.get(i).getCoverDrawablePointer());
         		if(resSearch.get(i).getCoverDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
         		else image.setImageDrawable((Drawable) drawable.get(resSearch.get(i).getCoverDrawablePointer()));
-        		
+        		float scale = (float) (windowWidth*0.26)/128;
+        		image.setScaleX(scale);
+        		image.setScaleY(scale);
+        		image.setMinimumWidth((int)scale);
+        		image.setMinimumHeight((int)scale);
         		layout1.addView(image);
         		layout1.addView(vertical1);
-            
-            
+        		
+        		layout1.setOnClickListener(new OnClickListener() { 
+                    public void onClick(View v){
+                    	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
+                    	System.out.println(((TextView) vert.getChildAt(2)).getText());
+        			}
+        		});
         		
         		finallayout.addView(layout1);
         	}
@@ -323,8 +340,8 @@ public class Search extends FragmentActivity {
 	        	for(int i = 0; i < numSongs; ++i){
 	        		currentUrl = resSearch.get(i).getCover();
 					if(!urlDrawables.contains(currentUrl)){
-						System.out.println("Current Url:");
-		        		System.out.println(currentUrl);
+						//System.out.println("Current Url:");
+		        		//System.out.println(currentUrl);
 						urlDrawables.add(currentUrl);
 						drawable.add(ImageOperations(context,currentUrl));
 						Song aux = resSearch.get(i);
