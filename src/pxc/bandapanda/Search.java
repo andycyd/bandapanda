@@ -9,6 +9,7 @@ import java.util.Vector;
 import android.R.bool;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -140,6 +141,10 @@ public class Search extends FragmentActivity {
                     public void onClick(View v){
                     	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
                     	System.out.println(((TextView) vert.getChildAt(2)).getText());
+                    	CurrentPL current = CurrentPL.getInstance();
+                    	current.addSong(resSearch.get(0));
+                    	Intent i = new Intent(context, MusicPlayer.class);
+                    	startActivity(i);
         			}
         		});
         		
