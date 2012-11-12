@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Vector;
 
-import android.R.bool;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,24 +14,15 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.NavUtils;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
+import android.view.View.OnLongClickListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -108,7 +98,8 @@ public class Search extends FragmentActivity {
     		ScrollView scroll = (ScrollView) mViewPager.getChildAt(0);
     		LinearLayout finallayout = new LinearLayout(context);
         	finallayout.setOrientation(1);
-        	for(int i = 0; i < numSongs; ++i){
+        	int i;
+        	for(i = 0; i < numSongs; ++i){
         		final LinearLayout layout1 = new LinearLayout(context);
         		LinearLayout vertical1 = new LinearLayout(context);
         		vertical1.setOrientation(1);
@@ -136,6 +127,15 @@ public class Search extends FragmentActivity {
         		image.setMinimumHeight((int)scale);
         		layout1.addView(image);
         		layout1.addView(vertical1);
+        		final int id = i;
+        		
+        		layout1.setOnLongClickListener(new OnLongClickListener() {
+        			public boolean onLongClick(View v){
+        				System.out.println("Apretado: "+id);
+						return false;
+        			}
+        			
+        		});
         		
         		layout1.setOnClickListener(new OnClickListener() { 
                     public void onClick(View v){
@@ -143,6 +143,8 @@ public class Search extends FragmentActivity {
                     	System.out.println(((TextView) vert.getChildAt(2)).getText());
                     	CurrentPL current = CurrentPL.getInstance();
                     	current.addSong(resSearch.get(0));
+                    	current.addSong(resSearch.get(1));
+                    	System.out.println(resSearch.get(0).getTitle());
                     	Intent i = new Intent(context, MusicPlayer.class);
                     	startActivity(i);
         			}

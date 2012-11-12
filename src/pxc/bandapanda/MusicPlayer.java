@@ -1,18 +1,26 @@
 package pxc.bandapanda;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
  
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,10 +35,14 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
     private ImageButton btnPlaylist;
     private ImageButton btnRepeat;
     private ImageButton btnShuffle;
+    private ImageView songImage;
     private SeekBar songProgressBar;
     private TextView songTitleLabel;
     private TextView songCurrentDurationLabel;
     private TextView songTotalDurationLabel;
+    private Drawable cover;
+    private Context context;
+    int finished;
     // Media Player
     private  MediaPlayer mp;
     // Handler to update UI timer, progress bar etc,.
@@ -49,7 +61,9 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
         setContentView(R.layout.player);
  
         // All player buttons
+        context = this;
         btnPlay = (ImageButton) findViewById(R.id.btnPlay);
+        songImage = (ImageView) findViewById(R.id.imageView1);
         btnForward = (ImageButton) findViewById(R.id.btnForward);
         btnBackward = (ImageButton) findViewById(R.id.btnBackward);
         btnNext = (ImageButton) findViewById(R.id.btnNext);
@@ -278,12 +292,9 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
     public void  playSong(int songIndex){
         // Play song
         try {
-            mp.reset();
-            mp.setDataSource(songsList.get(songIndex).get("songPath"));
-            mp.prepare();
-            mp.start();
             // Displaying Song title
             String songTitle = songsList.get(songIndex).get("songTitle");
+            
             songTitleLabel.setText(songTitle);
  
             // Changing Button Image to pause image
@@ -292,6 +303,21 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
             // set Progress bar values
             songProgressBar.setProgress(0);
             songProgressBar.setMax(100);
+            finished = 0;
+            
+            //Ponemos la cover ->
+            /*
+            LongRunningGetIO lg = new LongRunningGetIO();
+            lg.execute();
+            while(finished != 1);
+            finished = 0;
+            songImage.setImageDrawable(cover);*/
+
+            mp.reset();
+            mp.setDataSource("http://galeon.com/miscosasvarias/homer.mp3");
+           // mp.setDataSource(songsList.get(songIndex).get("songPath"));
+            mp.prepare();
+            mp.start();
  
             // Updating progress bar
             updateProgressBar();
@@ -398,5 +424,63 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
      super.onDestroy();
         mp.release();
      }
+    
+    public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
+
+    	ProgressDialog pd;
+
+    	
+    	public LongRunningGetIO(){
+
+    	}
+    	
+        public Object fetch(String address) throws MalformedURLException, IOException{
+			URL url = new URL(address);
+			Object content = url.getContent();
+			return content;
+        	
+        }
+        
+
+        private Drawable ImageOperations(Context ctx, String url) {
+            try {
+                InputStream is = (InputStream) this.fetch(url);
+                Drawable d = Drawable.createFromStream(is, "src");
+                return d;
+            } catch (MalformedURLException e) {
+                return null;
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        
+       @Override
+       protected void onPreExecute(){
+            System.out.println("Empieza dialog");
+    	    pd = new ProgressDialog(context);
+          	pd.setMessage("Searching...");
+          	pd.setCancelable(false);
+          	pd.setIndeterminate(true);
+          	pd.show();
+       }
+       
+       @Override 
+       protected void onPostExecute(final String s){
+    	   System.out.println("Acaba");
+    	   finished = 1;
+    	   pd.dismiss();
+       }
+    	@Override
+		protected String doInBackground(Void... params) {
+			try {
+				   cover = ImageOperations(context,"http://www.starmedia.com/imagenes/2012/02/facebook-cover-designer-app-store-1-300x300.jpg");
+			} catch (Exception ex) {
+				return null;
+			}
+           
+			return null;
+		}
+
+    }
  
 }
