@@ -1,5 +1,7 @@
 package pxc.bandapanda;
 
+import android.graphics.drawable.Drawable;
+
 
 public class Song {
 	
@@ -9,6 +11,7 @@ public class Song {
 	private String album;
 	private int IDgroup;
 	private String group;
+	private Drawable dcover;
 	private String cover;
 	private String url;
 	private int coverDrawablePointer;
@@ -119,6 +122,14 @@ public class Song {
 
 	public void setCoverDrawablePointer(int coverDrawablePointer) {
 		this.coverDrawablePointer = coverDrawablePointer;
+	}
+
+	public Drawable getDcover() {
+		return dcover;
+	}
+
+	public void setDcover(Drawable dcover) {
+		this.dcover = dcover;
 	}
 
 }

@@ -15,17 +15,18 @@
         android:paddingRight="5dp">
  
         <!-- Song Title -->
+
         <TextView
             android:id="@+id/songTitle"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="#04b3d2"
-            android:textSize="16dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_weight="0.73"
             android:paddingLeft="10dp"
-            android:textStyle="bold"
             android:text="The Good, The Bad And The Ugly"
-            android:layout_marginTop="10dp"/>
+            android:textColor="#04b3d2"
+            android:textSize="20dp"
+            android:textStyle="bold" />
  
         <!-- Playlist button -->
         <ImageButton
@@ -45,9 +46,13 @@
         android:paddingBottom="10dp"
         android:gravity="center"
         android:layout_below="@id/player_header_bg">
-        <ImageView android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/adele"/>
+
+        <ImageView
+            android:id="@+id/coverImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/adele" />
+
     </LinearLayout>
  
     <!-- Player Footer -->

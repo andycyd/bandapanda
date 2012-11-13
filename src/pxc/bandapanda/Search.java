@@ -142,9 +142,10 @@ public class Search extends FragmentActivity {
                     	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
                     	System.out.println(((TextView) vert.getChildAt(2)).getText());
                     	CurrentPL current = CurrentPL.getInstance();
+                    	resSearch.get(0).setDcover((Drawable) drawable.get(resSearch.get(0).getCoverDrawablePointer()));
+                    	resSearch.get(1).setDcover((Drawable) drawable.get(resSearch.get(1).getCoverDrawablePointer()));
                     	current.addSong(resSearch.get(0));
                     	current.addSong(resSearch.get(1));
-                    	System.out.println(resSearch.get(0).getTitle());
                     	Intent i = new Intent(context, MusicPlayer.class);
                     	startActivity(i);
         			}

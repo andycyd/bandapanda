@@ -12,6 +12,8 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -63,7 +65,7 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
         // All player buttons
         context = this;
         btnPlay = (ImageButton) findViewById(R.id.btnPlay);
-        songImage = (ImageView) findViewById(R.id.imageView1);
+        songImage = (ImageView) findViewById(R.id.coverImage);
         btnForward = (ImageButton) findViewById(R.id.btnForward);
         btnBackward = (ImageButton) findViewById(R.id.btnBackward);
         btnNext = (ImageButton) findViewById(R.id.btnNext);
@@ -289,7 +291,8 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
      * Function to play a song
      * @param songIndex - index of song
      * */
-    public void  playSong(int songIndex){
+    @SuppressWarnings("deprecation")
+	public void  playSong(int songIndex){
         // Play song
         try {
             // Displaying Song title
@@ -310,8 +313,12 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
             LongRunningGetIO lg = new LongRunningGetIO();
             lg.execute();
             while(finished != 1);
-            finished = 0;
-            songImage.setImageDrawable(cover);*/
+            finished = 0;*/
+            Drawable d = (Drawable) CurrentPL.getInstance().getSong(songIndex).getDcover();
+            Bitmap bd = ((BitmapDrawable) d).getBitmap();
+            Bitmap bitmapOrig = Bitmap.createScaledBitmap(bd, 300, 300, false);
+           
+            songImage.setImageDrawable( new BitmapDrawable(bitmapOrig));
 
             mp.reset();
             mp.setDataSource("http://galeon.com/miscosasvarias/homer.mp3");
