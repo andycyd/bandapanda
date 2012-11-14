@@ -73,7 +73,8 @@ public class Search extends FragmentActivity {
     }
 
     
-    private void searchSongs(){
+    @SuppressWarnings("deprecation")
+	private void searchSongs(){
     	ScrollView scroll = (ScrollView) mViewPager.getChildAt(0);
 		LinearLayout finallayout = new LinearLayout(context);
     	finallayout.setOrientation(1);

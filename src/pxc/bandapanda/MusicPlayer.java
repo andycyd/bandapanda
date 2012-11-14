@@ -11,6 +11,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -18,6 +19,7 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -292,9 +294,18 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
             lg.execute();
             while(finished != 1);
             finished = 0;*/
+            
+            
             Drawable d = (Drawable) CurrentPL.getInstance().getSong(songIndex).getDcover();
             Bitmap bd = ((BitmapDrawable) d).getBitmap();
-            Bitmap bitmapOrig = Bitmap.createScaledBitmap(bd, 300, 300, false);
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            double resize = 0.85;
+            int y = (int) (size.y*resize);
+            int x = (int) (size.x*resize); 
+            if(x > y) x= y;
+            Bitmap bitmapOrig = Bitmap.createScaledBitmap(bd, x, x, false);
            
             songImage.setImageDrawable( new BitmapDrawable(bitmapOrig));
 
