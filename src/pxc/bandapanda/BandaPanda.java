@@ -108,7 +108,6 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     		try {
 				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
     		try {

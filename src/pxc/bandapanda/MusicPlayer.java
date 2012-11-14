@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
  
 import android.app.Activity;
@@ -21,6 +19,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -42,7 +41,6 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
     private TextView songTitleLabel;
     private TextView songCurrentDurationLabel;
     private TextView songTotalDurationLabel;
-    private Drawable cover;
     private Context context;
     int finished;
     // Media Player
@@ -55,7 +53,6 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
     private int currentSongIndex = 0;
     private boolean isShuffle = false;
     private boolean isRepeat = false;
-    private ArrayList<HashMap<String, String>> songsList = new ArrayList<HashMap<String, String>>();
  
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -86,29 +83,10 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
         songProgressBar.setOnSeekBarChangeListener(this); // Important
         mp.setOnCompletionListener(this); // Important
  
-        // Getting all songs list
-        
-        CurrentPL playlist = CurrentPL.getInstance();
-        
-        // looping through playlist
-        for (int i = 0; i < playlist.getNumSongs(); i++) {
-            // creating new HashMap
-            HashMap<String, String> song = new HashMap<String, String>();
-            song.put("songTitle", playlist.getSong(i).getTitle());
-            song.put("songPath", playlist.getSong(i).getUrl());
- 
-            // adding HashList to ArrayList
-            songsList.add(song);
-        }
- 
         // By default play first song
         playSong(0);
+        
  
-        /**
-         * Play button click event
-         * plays a song and changes button to pause image
-         * pauses a song and changes button to play image
-         * */
         btnPlay.setOnClickListener(new View.OnClickListener() {
  
             public void onClick(View arg0) {
@@ -180,7 +158,7 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
  
             public void onClick(View arg0) {
                 // check if next song is there or not
-                if(currentSongIndex < (songsList.size() - 1)){
+                if(currentSongIndex < (CurrentPL.getInstance().getNumSongs() - 1)){
                     playSong(currentSongIndex + 1);
                     currentSongIndex = currentSongIndex + 1;
                 }else{
@@ -204,8 +182,8 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
                     currentSongIndex = currentSongIndex - 1;
                 }else{
                     // play last song
-                    playSong(songsList.size() - 1);
-                    currentSongIndex = songsList.size() - 1;
+                    playSong(CurrentPL.getInstance().getNumSongs() - 1);
+                    currentSongIndex = CurrentPL.getInstance().getNumSongs() - 1;
                 }
  
             }
@@ -296,7 +274,7 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
         // Play song
         try {
             // Displaying Song title
-            String songTitle = songsList.get(songIndex).get("songTitle");
+        	String songTitle = CurrentPL.getInstance().getSong(songIndex).getTitle();
             
             songTitleLabel.setText(songTitle);
  
@@ -411,11 +389,11 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
         } else if(isShuffle){
             // shuffle is on - play a random song
             Random rand = new Random();
-            currentSongIndex = rand.nextInt((songsList.size() - 1) - 0 + 1) + 0;
+            currentSongIndex = rand.nextInt((CurrentPL.getInstance().getNumSongs() - 1) - 0 + 1) + 0;
             playSong(currentSongIndex);
         } else{
             // no repeat or shuffle ON - play next song
-            if(currentSongIndex < (songsList.size() - 1)){
+            if(currentSongIndex < (CurrentPL.getInstance().getNumSongs() - 1)){
                 playSong(currentSongIndex + 1);
                 currentSongIndex = currentSongIndex + 1;
             }else{
@@ -480,7 +458,8 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
     	@Override
 		protected String doInBackground(Void... params) {
 			try {
-				   cover = ImageOperations(context,"http://www.starmedia.com/imagenes/2012/02/facebook-cover-designer-app-store-1-300x300.jpg");
+				   Drawable cover = ImageOperations(context,"http://www.starmedia.com/imagenes/2012/02/facebook-cover-designer-app-store-1-300x300.jpg");
+				   cover.clearColorFilter();
 			} catch (Exception ex) {
 				return null;
 			}

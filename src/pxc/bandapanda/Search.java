@@ -9,7 +9,9 @@ import java.util.Vector;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -29,13 +31,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class Search extends FragmentActivity {
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide fragments for each of the
-     * sections. We use a {@link android.support.v4.app.FragmentPagerAdapter} derivative, which will
-     * keep every loaded fragment in memory. If this becomes too memory intensive, it may be best
-     * to switch to a {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
     private PagerAdapter pageAdapter;
     private static Context context;
     ViewPager mViewPager;
@@ -78,110 +73,105 @@ public class Search extends FragmentActivity {
     }
 
     
-    public void testClick(View view){
-    	numSongs++;
-    	
-    	//falta llamada api
-    	resSearch = new Vector<Song>();
-    	for(int i = 0; i < numSongs; ++i){
-    		Song s = new Song(i, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
-    		resSearch.add(s);
+    private void searchSongs(){
+    	ScrollView scroll = (ScrollView) mViewPager.getChildAt(0);
+		LinearLayout finallayout = new LinearLayout(context);
+    	finallayout.setOrientation(1);
+    	int i;
+    	for(i = 0; i < numSongs; ++i){
+    		final LinearLayout layout1 = new LinearLayout(context);
+    		LinearLayout vertical1 = new LinearLayout(context);
+    		vertical1.setOrientation(1);
+    		final TextView artist = new TextView(context);
+    		artist.setText(resSearch.get(i).getTitle());
+    		artist.setTextSize(25);
+    		vertical1.addView(artist);
+    		final TextView album = new TextView(context);
+    		album.setText(resSearch.get(i).getGroup());
+    		album.setTextSize(18);
+    		vertical1.addView(album);
+    		final TextView songid = new TextView(context);
+    		songid.setText(String.valueOf(resSearch.get(i).getID()));
+    		songid.setTextSize(0);
+    		vertical1.addView(songid);
+    		
+    		layout1.setOrientation(0);
+    		final ImageView image = new ImageView(context);
+    		if(resSearch.get(i).getCoverDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
+    		else {
+
+                Drawable d = (Drawable) drawable.get(resSearch.get(i).getCoverDrawablePointer());
+                Bitmap bd = ((BitmapDrawable) d).getBitmap();
+                Display display = getWindowManager().getDefaultDisplay();
+                Point size = new Point();
+                display.getSize(size);
+                double resize = 0.25;
+                int y = (int) (size.y*resize);
+                int x = (int) (size.x*resize); 
+                if(x > y) x= y;
+                Bitmap bitmapOrig = Bitmap.createScaledBitmap(bd, x, x, false);
+    			image.setImageDrawable(new BitmapDrawable(bitmapOrig));
+    		}
+    		layout1.addView(image);
+    		layout1.addView(vertical1);
+    		final int id = i;
+    		
+    		layout1.setOnLongClickListener(new OnLongClickListener() {
+    			public boolean onLongClick(View v){
+    				System.out.println("Apretado: "+id);
+					return false;
+    			}
+    			
+    		});
+    		
+    		layout1.setOnClickListener(new OnClickListener() { 
+                public void onClick(View v){
+                	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
+                	System.out.println(((TextView) vert.getChildAt(2)).getText());
+                	CurrentPL current = CurrentPL.getInstance();
+                	resSearch.get(0).setDcover((Drawable) drawable.get(resSearch.get(0).getCoverDrawablePointer()));
+                	resSearch.get(1).setDcover((Drawable) drawable.get(resSearch.get(1).getCoverDrawablePointer()));
+                	current.addSong(resSearch.get(0));
+                	current.addSong(resSearch.get(1));
+                	Intent i = new Intent(context, MusicPlayer.class);
+                	startActivity(i);
+    			}
+    		});
+    		
+    		finallayout.addView(layout1);
     	}
+    	scroll.removeAllViews();
+        scroll.addView(finallayout);
+        mViewPager.removeViewAt(0);
+        mViewPager.addView(scroll, 0);
+    }
+    
+    private void searchAlbums(){
+    	
+    }
+    
+    private void searchArtists(){
+    	
+    }
+    
+    public void testClick(View view){    	
+
     	currentPage = mViewPager.getCurrentItem();
-    	//drawable = new Vector<Drawable>();
-    	//urlDrawables = new Vector<String>();
-    	LongRunningGetIO lrgio = new LongRunningGetIO();
-		lrgio.execute();
-		while(finished != 1); 
-    	
-    	if(currentPage == 0){
-    		ScrollView scroll = (ScrollView) mViewPager.getChildAt(0);
-    		LinearLayout finallayout = new LinearLayout(context);
-        	finallayout.setOrientation(1);
-        	int i;
-        	for(i = 0; i < numSongs; ++i){
-        		final LinearLayout layout1 = new LinearLayout(context);
-        		LinearLayout vertical1 = new LinearLayout(context);
-        		vertical1.setOrientation(1);
-        		final TextView artist = new TextView(context);
-        		artist.setText(resSearch.get(i).getTitle());
-        		artist.setTextSize(25);
-        		vertical1.addView(artist);
-        		final TextView album = new TextView(context);
-        		album.setText(resSearch.get(i).getGroup());
-        		album.setTextSize(18);
-        		vertical1.addView(album);
-        		final TextView songid = new TextView(context);
-        		songid.setText(String.valueOf(resSearch.get(i).getID()));
-        		songid.setTextSize(0);
-        		vertical1.addView(songid);
-        		
-        		layout1.setOrientation(0);
-        		final ImageView image = new ImageView(context);
-        		if(resSearch.get(i).getCoverDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
-        		else image.setImageDrawable((Drawable) drawable.get(resSearch.get(i).getCoverDrawablePointer()));
-        		float scale = (float) (windowWidth*0.26)/128;
-        		image.setScaleX(scale);
-        		image.setScaleY(scale);
-        		image.setMinimumWidth((int)scale);
-        		image.setMinimumHeight((int)scale);
-        		layout1.addView(image);
-        		layout1.addView(vertical1);
-        		final int id = i;
-        		
-        		layout1.setOnLongClickListener(new OnLongClickListener() {
-        			public boolean onLongClick(View v){
-        				System.out.println("Apretado: "+id);
-						return false;
-        			}
-        			
-        		});
-        		
-        		layout1.setOnClickListener(new OnClickListener() { 
-                    public void onClick(View v){
-                    	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
-                    	System.out.println(((TextView) vert.getChildAt(2)).getText());
-                    	CurrentPL current = CurrentPL.getInstance();
-                    	resSearch.get(0).setDcover((Drawable) drawable.get(resSearch.get(0).getCoverDrawablePointer()));
-                    	resSearch.get(1).setDcover((Drawable) drawable.get(resSearch.get(1).getCoverDrawablePointer()));
-                    	current.addSong(resSearch.get(0));
-                    	current.addSong(resSearch.get(1));
-                    	Intent i = new Intent(context, MusicPlayer.class);
-                    	startActivity(i);
-        			}
-        		});
-        		
-        		finallayout.addView(layout1);
-        	}
-        	scroll.removeAllViews();
-            scroll.addView(finallayout);
-            mViewPager.removeViewAt(0);
-            mViewPager.addView(scroll, 0);
-            //ScrollView scroll1 = new ScrollView(context);
-            //ScrollView scroll2 = new ScrollView(context);
-            //mViewPager.addView(scroll1, 0);
-            //mViewPager.addView(scroll2, 2);
-    	}
-    	/*try{
-    		pageAdapter = new CustomPageAdapter(context);
-    		mViewPager = (ViewPager) findViewById(R.id.pager);
-    		mViewPager.setAdapter(pageAdapter);
-    		ScrollView scroll = (ScrollView) mViewPager.getChildAt(1);
-    		LinearLayout finallayout = (LinearLayout) scroll.getChildAt(0);
-    		LinearLayout layout1 = (LinearLayout) finallayout.getChildAt(0);
-    		ImageView image = (ImageView) layout1.getChildAt(0);
-    		image.setImageDrawable((Drawable) drawable2.get(0));
-    		layout1.addView(image, 0);
-    		finallayout.addView(layout1, 0);
-    		scroll.addView(finallayout, 0);
-    		mViewPager.addView(scroll, 1);
-    		
-    		System.out.println("numCanciones : ");
-    		System.out.println(finallayout.getChildCount());
-    		
-    	}catch(Exception e){
-    		e.printStackTrace();
-    	}*/
+		switch(currentPage){
+		case 0: 
+			numSongs++;
+	    	resSearch = new Vector<Song>();
+	    	for(int i = 0; i < numSongs; ++i){
+	    		Song s = new Song(i, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
+	    		resSearch.add(s);
+	    	}
+	    	LongRunningGetIO lrgio = new LongRunningGetIO();
+			lrgio.execute();
+			while(finished != 1); 
+			searchSongs(); break;
+		case 2: searchAlbums(); break;
+		case 1: searchArtists(); break;
+		}
     }
     
     
@@ -212,7 +202,6 @@ public class Search extends FragmentActivity {
         
         @Override  
         public void finishUpdate(View arg0) {  
-            // TODO Auto-generated method stub  
               
         } 
 
@@ -223,19 +212,16 @@ public class Search extends FragmentActivity {
       
         @Override  
         public void restoreState(Parcelable arg0, ClassLoader arg1) {  
-            // TODO Auto-generated method stub  
               
         }  
       
         @Override  
         public Parcelable saveState() {  
-            // TODO Auto-generated method stub  
             return null;  
         }  
       
         @Override  
-        public void startUpdate(View arg0) {  
-            // TODO Auto-generated method stub  
+        public void startUpdate(View arg0) {   
               
         }
         
@@ -244,45 +230,6 @@ public class Search extends FragmentActivity {
         	ScrollView scroll = new ScrollView(context);
             ((ViewPager) collection).addView(scroll,position);
             return scroll;
-        	/*LinearLayout finallayout = new LinearLayout(context);
-        	finished = 0;
-        	finallayout.setOrientation(1);
-    		LongRunningGetIO lrgio = new LongRunningGetIO();
-    		lrgio.execute();
-
-
-            
-    		//while(!lrgio.isCancelled()){}
-    		while(finished != 1); 
-    		//pd.dismiss();
-        	for(int i = 0; i < numSongs; ++i){
-        		LinearLayout layout1 = new LinearLayout(context);
-        		LinearLayout vertical1 = new LinearLayout(context);
-        		vertical1.setOrientation(1);
-        		final TextView artist = new TextView(context);
-        		artist.setText("Artista 1");
-        		artist.setTextSize(25);
-        		vertical1.addView(artist);
-        		final TextView album = new TextView(context);
-        		album.setText("Album 1");
-        		album.setTextSize(18);
-        		vertical1.addView(album);
-        		
-        		layout1.setOrientation(0);
-        		final ImageView image = new ImageView(context);
-        		image.setImageDrawable((Drawable) drawable.get(i));
-        		
-        		layout1.addView(image);
-        		layout1.addView(vertical1);
-            
-            
-        		
-        		finallayout.addView(layout1);
-        	}
-            ScrollView scroll = new ScrollView(context);
-            scroll.addView(finallayout);
-            ((ViewPager) collection).addView(scroll,0);
-            return scroll;*/
         }
 
         @Override
@@ -328,7 +275,6 @@ public class Search extends FragmentActivity {
         
        @Override
        protected void onPreExecute(){
-            System.out.println("Empieza dialog");
     	    pd = new ProgressDialog(context);
           	pd.setMessage("Searching...");
           	pd.setCancelable(false);
@@ -338,7 +284,6 @@ public class Search extends FragmentActivity {
        
        @Override 
        protected void onPostExecute(final String s){
-    	   System.out.println("Acaba");
     	   pd.dismiss();
        }
     	@Override
@@ -348,8 +293,6 @@ public class Search extends FragmentActivity {
 	        	for(int i = 0; i < numSongs; ++i){
 	        		currentUrl = resSearch.get(i).getCover();
 					if(!urlDrawables.contains(currentUrl)){
-						//System.out.println("Current Url:");
-		        		//System.out.println(currentUrl);
 						urlDrawables.add(currentUrl);
 						drawable.add(ImageOperations(context,currentUrl));
 						Song aux = resSearch.get(i);

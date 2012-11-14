@@ -37,6 +37,8 @@
                 <action android:name="android.intent.action.PLAYACTIVITY"/>
             </intent-filter>
         </activity>
+        <activity android:name="MainActivity" android:configChanges="keyboardHidden|orientation|screenSize"> </activity>
+        
     </application>
 
 </manifest>
