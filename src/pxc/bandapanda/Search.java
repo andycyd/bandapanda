@@ -2,12 +2,34 @@ package pxc.bandapanda;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -38,7 +60,7 @@ public class Search extends FragmentActivity {
     int width;
     Vector<String> urlDrawables;
     Vector<Drawable> drawable;
-    Vector<Song> resSearch;
+    Vector<Song> resSearchSongs;
     int currentPage;
     int finished;
     int windowWidth;
@@ -55,7 +77,7 @@ public class Search extends FragmentActivity {
         context = this;
         drawable = new Vector<Drawable>();
         urlDrawables = new Vector<String>();
-        resSearch = new Vector<Song>();
+        resSearchSongs = new Vector<Song>();
         setContentView(R.layout.activity_search);
 		pageAdapter = new CustomPageAdapter(context);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -84,24 +106,24 @@ public class Search extends FragmentActivity {
     		LinearLayout vertical1 = new LinearLayout(context);
     		vertical1.setOrientation(1);
     		final TextView artist = new TextView(context);
-    		artist.setText(resSearch.get(i).getTitle());
+    		artist.setText(resSearchSongs.get(i).getTitle());
     		artist.setTextSize(25);
     		vertical1.addView(artist);
     		final TextView album = new TextView(context);
-    		album.setText(resSearch.get(i).getGroup());
+    		album.setText(resSearchSongs.get(i).getGroup());
     		album.setTextSize(18);
     		vertical1.addView(album);
     		final TextView songid = new TextView(context);
-    		songid.setText(String.valueOf(resSearch.get(i).getID()));
+    		songid.setText(String.valueOf(resSearchSongs.get(i).getID()));
     		songid.setTextSize(0);
     		vertical1.addView(songid);
     		
     		layout1.setOrientation(0);
     		final ImageView image = new ImageView(context);
-    		if(resSearch.get(i).getCoverDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
+    		if(resSearchSongs.get(i).getCoverDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
     		else {
 
-                Drawable d = (Drawable) drawable.get(resSearch.get(i).getCoverDrawablePointer());
+                Drawable d = (Drawable) drawable.get(resSearchSongs.get(i).getCoverDrawablePointer());
                 Bitmap bd = ((BitmapDrawable) d).getBitmap();
                 Display display = getWindowManager().getDefaultDisplay();
                 Point size = new Point();
@@ -130,10 +152,10 @@ public class Search extends FragmentActivity {
                 	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
                 	System.out.println(((TextView) vert.getChildAt(2)).getText());
                 	CurrentPL current = CurrentPL.getInstance();
-                	resSearch.get(0).setDcover((Drawable) drawable.get(resSearch.get(0).getCoverDrawablePointer()));
-                	resSearch.get(1).setDcover((Drawable) drawable.get(resSearch.get(1).getCoverDrawablePointer()));
-                	current.addSong(resSearch.get(0));
-                	current.addSong(resSearch.get(1));
+                	resSearchSongs.get(0).setDcover((Drawable) drawable.get(resSearchSongs.get(0).getCoverDrawablePointer()));
+                	resSearchSongs.get(1).setDcover((Drawable) drawable.get(resSearchSongs.get(1).getCoverDrawablePointer()));
+                	current.addSong(resSearchSongs.get(0));
+                	current.addSong(resSearchSongs.get(1));
                 	Intent i = new Intent(context, MusicPlayer.class);
                 	startActivity(i);
     			}
@@ -161,13 +183,15 @@ public class Search extends FragmentActivity {
 		switch(currentPage){
 		case 0: 
 			numSongs++;
-	    	resSearch = new Vector<Song>();
+			LongRunningGetSearch lrgs = new LongRunningGetSearch();
+			lrgs.execute();
+	    	resSearchSongs = new Vector<Song>();
 	    	for(int i = 0; i < numSongs; ++i){
 	    		Song s = new Song(i, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
-	    		resSearch.add(s);
+	    		resSearchSongs.add(s);
 	    	}
-	    	LongRunningGetIO lrgio = new LongRunningGetIO();
-			lrgio.execute();
+	    	LongRunningGetImages lrgi = new LongRunningGetImages();
+	    	lrgi.execute();
 			while(finished != 1); 
 			searchSongs(); break;
 		case 2: searchAlbums(); break;
@@ -245,12 +269,12 @@ public class Search extends FragmentActivity {
     	
     }
     
-    public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
+    public class LongRunningGetImages extends AsyncTask <Void, Void, String> {
 
     	ProgressDialog pd;
 
     	
-    	public LongRunningGetIO(){
+    	public LongRunningGetImages(){
 
     	}
     	
@@ -292,24 +316,24 @@ public class Search extends FragmentActivity {
 			try {
 				String currentUrl;
 	        	for(int i = 0; i < numSongs; ++i){
-	        		currentUrl = resSearch.get(i).getCover();
+	        		currentUrl = resSearchSongs.get(i).getCover();
 					if(!urlDrawables.contains(currentUrl)){
 						urlDrawables.add(currentUrl);
 						drawable.add(ImageOperations(context,currentUrl));
-						Song aux = resSearch.get(i);
-						resSearch.remove(i);
+						Song aux = resSearchSongs.get(i);
+						resSearchSongs.remove(i);
 						aux.setCoverDrawablePointer(drawable.size()-1);
-						resSearch.add(i, aux);
+						resSearchSongs.add(i, aux);
 					}
 					else{
 						int trob = 0;
 						int a = 0;
 						while(trob == 0){
 							if(urlDrawables.get(a).equals(currentUrl)){
-								Song aux = resSearch.get(i);
-								resSearch.remove(i);
+								Song aux = resSearchSongs.get(i);
+								resSearchSongs.remove(i);
 								aux.setCoverDrawablePointer(a);
-								resSearch.add(i, aux);
+								resSearchSongs.add(i, aux);
 								trob = 1;
 							}
 							else a++;
@@ -324,6 +348,95 @@ public class Search extends FragmentActivity {
 			return null;
 		}
 
+    }
+    
+    public class LongRunningGetSearch extends AsyncTask <Void, Void, String> {
+
+    	
+	    ProgressDialog pd;
+	    
+	    @Override
+	    protected void onPreExecute(){
+
+		    pd = new ProgressDialog(context);
+
+	       	pd.setMessage("Searching...");
+	       	pd.setCancelable(false);
+	       	pd.setIndeterminate(true);
+	       	pd.show();
+        }
+	    
+	    
+    	@Override
+    	protected String doInBackground(Void... params) {
+    		TextView search = (TextView)findViewById(R.id.searchText);
+    		HttpClient httpClient = new DefaultHttpClient();
+    		String requestToSearch = search.getText().toString();
+    		HttpContext localContext = new BasicHttpContext();
+    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&limit=10&offset=0");
+    		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+    		try {
+    			HttpResponse response = httpClient.execute(httpget, localContext);
+    			StatusLine stl = response.getStatusLine();
+    			HttpEntity ent = response.getEntity();
+    			String res = String.valueOf(stl.getStatusCode());
+    			if(res.equals("200")){
+    				String src = EntityUtils.toString(ent);
+    				System.out.println(src);
+    				JSONArray result = new JSONArray(src);
+    				for (int i = 0; i < result.length(); ++i) {
+    				    JSONObject rec = result.getJSONObject(i);
+    				    int ID = Integer.parseInt(rec.getString("song_id"));
+    					String title = rec.getString("song_title");
+    					int IDalbum = Integer.parseInt(rec.getString("album_id"));
+    					String album = rec.getString("album_title");
+    					int IDgroup = Integer.parseInt(rec.getString("artist_id"));
+    					String group = rec.getString("artist_name");
+    					String cover = rec.getString("audio_url");
+    					String url = rec.getString("cover_url");
+    					System.out.println("Song: "+title);
+    					System.out.println("Group: "+group);
+    					System.out.println("album: "+album);
+    				}
+    			}
+    			return String.valueOf(stl.getStatusCode());
+    		} catch (Exception e) {
+    			System.out.println("Error"+e.getLocalizedMessage());
+    			return e.getLocalizedMessage();
+    		}
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
+    		if(results.equals("200") || results.equals("206")){
+				pd.dismiss();
+				finished = 1;
+			}
+			else /*if(results.equals("401"))*/{
+
+    			AlertDialog alert = new AlertDialog.Builder(context).create();
+    			alert.setTitle("Searching error");
+    			alert.setMessage("yoNoSaber...");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			alert.show();
+			}
+			/*else{
+
+    			AlertDialog alert = new AlertDialog.Builder(context).create();
+    			alert.setTitle("Login error");
+    			alert.setMessage("No connection with the server");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			alert.show();
+			}*/
+    	}
     }
 
 
