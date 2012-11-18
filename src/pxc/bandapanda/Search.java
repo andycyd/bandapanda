@@ -114,7 +114,7 @@ public class Search extends FragmentActivity {
     		album.setTextSize(18);
     		vertical1.addView(album);
     		final TextView songid = new TextView(context);
-    		songid.setText(String.valueOf(resSearchSongs.get(i).getID()));
+    		songid.setText(Integer.toString(i));
     		songid.setTextSize(0);
     		vertical1.addView(songid);
     		
@@ -152,10 +152,9 @@ public class Search extends FragmentActivity {
                 	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
                 	System.out.println(((TextView) vert.getChildAt(2)).getText());
                 	CurrentPL current = CurrentPL.getInstance();
-                	resSearchSongs.get(0).setDcover((Drawable) drawable.get(resSearchSongs.get(0).getCoverDrawablePointer()));
-                	resSearchSongs.get(1).setDcover((Drawable) drawable.get(resSearchSongs.get(1).getCoverDrawablePointer()));
-                	current.addSong(resSearchSongs.get(0));
-                	current.addSong(resSearchSongs.get(1));
+                	int index = Integer.parseInt(((TextView) vert.getChildAt(2)).getText().toString());
+                	resSearchSongs.get(index).setDcover((Drawable) drawable.get(resSearchSongs.get(index).getCoverDrawablePointer()));
+                	current.addSong(resSearchSongs.get(index));
                 	Intent i = new Intent(context, MusicPlayer.class);
                 	startActivity(i);
     			}
@@ -182,17 +181,24 @@ public class Search extends FragmentActivity {
     	currentPage = mViewPager.getCurrentItem();
 		switch(currentPage){
 		case 0: 
-			numSongs++;
-			LongRunningGetSearch lrgs = new LongRunningGetSearch();
-			lrgs.execute();
 	    	resSearchSongs = new Vector<Song>();
-	    	for(int i = 0; i < numSongs; ++i){
+			LongRunningGetSearch lrgs = new LongRunningGetSearch();
+			finished = 0;
+			lrgs.execute();
+			System.out.println("acaba consulta");
+			while(finished != 1);
+			System.out.println("seguimos");
+			numSongs = resSearchSongs.size();
+	    	/*for(int i = 0; i < numSongs; ++i){
 	    		Song s = new Song(i, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
 	    		resSearchSongs.add(s);
-	    	}
+	    	}*/
 	    	LongRunningGetImages lrgi = new LongRunningGetImages();
+	    	finished = 0;
 	    	lrgi.execute();
+	    	System.out.println("Acaba covers");
 			while(finished != 1); 
+			System.out.println("ponemos en su sitio");
 			searchSongs(); break;
 		case 2: searchAlbums(); break;
 		case 1: searchArtists(); break;
@@ -340,6 +346,7 @@ public class Search extends FragmentActivity {
 						}
 					}
 	        	}
+	        	System.out.println("tenemos todas las covers");
 	        	finished = 1;
 			} catch (Exception ex) {
 				return null;
@@ -382,7 +389,7 @@ public class Search extends FragmentActivity {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200")){
     				String src = EntityUtils.toString(ent);
-    				System.out.println(src);
+    				//System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -392,13 +399,20 @@ public class Search extends FragmentActivity {
     					String album = rec.getString("album_title");
     					int IDgroup = Integer.parseInt(rec.getString("artist_id"));
     					String group = rec.getString("artist_name");
-    					String cover = rec.getString("audio_url");
-    					String url = rec.getString("cover_url");
-    					System.out.println("Song: "+title);
+    					String url = getString(R.string.resources_url)+rec.getString("audio_url");
+    					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
+    					/*System.out.println("Song: "+title);
     					System.out.println("Group: "+group);
     					System.out.println("album: "+album);
+    					System.out.println("Cover: "+cover);
+    					System.out.println("URL: "+url);*/
+    					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
+    		    		resSearchSongs.add(s);
     				}
     			}
+    			System.out.println("acabamos de tratar el resultado");
+    			System.out.println(String.valueOf(stl.getStatusCode()));
+    			finished = 1;
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
     			System.out.println("Error"+e.getLocalizedMessage());
@@ -408,7 +422,9 @@ public class Search extends FragmentActivity {
     	
     	@SuppressWarnings("deprecation")
 		protected void onPostExecute(String results) {
+    		System.out.println("estamos en post execute");
     		if(results.equals("200") || results.equals("206")){
+    			
 				pd.dismiss();
 				finished = 1;
 			}

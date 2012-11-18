@@ -145,6 +145,7 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
 					public void onClick(final DialogInterface dialog, final int which) {
 					}
 				});
+    			pd.dismiss();
     			alert.show();
 			}
 			else{
@@ -157,6 +158,7 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
 					public void onClick(final DialogInterface dialog, final int which) {
 					}
 				});
+    			pd.dismiss();
     			alert.show();
 			}
     	}

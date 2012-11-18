@@ -310,8 +310,8 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
             songImage.setImageDrawable( new BitmapDrawable(bitmapOrig));
 
             mp.reset();
-            mp.setDataSource("http://galeon.com/miscosasvarias/homer.mp3");
-           // mp.setDataSource(songsList.get(songIndex).get("songPath"));
+            //mp.setDataSource("http://galeon.com/miscosasvarias/homer.mp3");
+            mp.setDataSource(CurrentPL.getInstance().getSong(songIndex).getUrl());
             mp.prepare();
             mp.start();
  
