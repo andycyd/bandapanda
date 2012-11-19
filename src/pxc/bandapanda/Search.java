@@ -47,6 +47,7 @@ import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -177,7 +178,7 @@ public class Search extends FragmentActivity {
     }
     
     public void testClick(View view){    	
-
+    	hideInputMethod();
     	currentPage = mViewPager.getCurrentItem();
 		switch(currentPage){
 		case 0: 
@@ -189,10 +190,6 @@ public class Search extends FragmentActivity {
 			while(finished != 1);
 			System.out.println("seguimos");
 			numSongs = resSearchSongs.size();
-	    	/*for(int i = 0; i < numSongs; ++i){
-	    		Song s = new Song(i, "Song ".concat(String.valueOf(i+1)), 0, "albm ".concat(String.valueOf(i+1)), 0, "group ".concat(String.valueOf(i+1)), "http://galeon.com/miscosasvarias/cover".concat(String.valueOf((i%4)+1).concat(".jpg")), -1,  "aaa");
-	    		resSearchSongs.add(s);
-	    	}*/
 	    	LongRunningGetImages lrgi = new LongRunningGetImages();
 	    	finished = 0;
 	    	lrgi.execute();
@@ -401,18 +398,12 @@ public class Search extends FragmentActivity {
     					String group = rec.getString("artist_name");
     					String url = getString(R.string.resources_url)+rec.getString("audio_url");
     					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
-    					/*System.out.println("Song: "+title);
-    					System.out.println("Group: "+group);
-    					System.out.println("album: "+album);
-    					System.out.println("Cover: "+cover);
-    					System.out.println("URL: "+url);*/
     					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
     		    		resSearchSongs.add(s);
     				}
     			}
-    			System.out.println("acabamos de tratar el resultado");
+				finished = 1;
     			System.out.println(String.valueOf(stl.getStatusCode()));
-    			finished = 1;
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
     			System.out.println("Error"+e.getLocalizedMessage());
@@ -424,37 +415,38 @@ public class Search extends FragmentActivity {
 		protected void onPostExecute(String results) {
     		System.out.println("estamos en post execute");
     		if(results.equals("200") || results.equals("206")){
-    			
 				pd.dismiss();
-				finished = 1;
 			}
-			else /*if(results.equals("401"))*/{
-
-    			AlertDialog alert = new AlertDialog.Builder(context).create();
-    			alert.setTitle("Searching error");
-    			alert.setMessage("yoNoSaber...");
-    			alert.setButton("Close",new DialogInterface.OnClickListener() {
-					
-					public void onClick(final DialogInterface dialog, final int which) {
-					}
-				});
-    			alert.show();
+			else if(results.equals("400")){
+				crearAlert("Error", "Wrong parameters");
 			}
-			/*else{
-
-    			AlertDialog alert = new AlertDialog.Builder(context).create();
-    			alert.setTitle("Login error");
-    			alert.setMessage("No connection with the server");
-    			alert.setButton("Close",new DialogInterface.OnClickListener() {
-					
-					public void onClick(final DialogInterface dialog, final int which) {
-					}
-				});
-    			alert.show();
-			}*/
+			else if(results.equals("416")){
+				crearAlert("Error", "No more songs avaliable");
+			}
+			else{
+				crearAlert("Connection error", "No connection with the server");
+			}
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+		private void crearAlert(String t, String s){
+    		AlertDialog alert = new AlertDialog.Builder(context).create();
+			alert.setTitle(t);
+			alert.setMessage(s);
+			alert.setButton("Close",new DialogInterface.OnClickListener() {
+				
+				public void onClick(final DialogInterface dialog, final int which) {
+				}
+			});
+			alert.show();
     	}
     }
-
+    
+    private void hideInputMethod(){  
+    	TextView srch = (TextView) findViewById(R.id.searchText);
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);  
+        imm.hideSoftInputFromWindow(srch.getWindowToken(), 0);  
+    } 
 
 }
 
