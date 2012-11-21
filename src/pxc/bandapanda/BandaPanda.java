@@ -62,7 +62,7 @@ public class BandaPanda extends FragmentActivity {
    
     
     public void goSearch(){
-    	Intent i = new Intent(this, Search.class);
+    	Intent i = new Intent(this, MenuPlaylist.class);
     	startActivity(i);
     }
     

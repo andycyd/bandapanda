@@ -430,7 +430,7 @@ public class Search extends FragmentActivity {
     	
     	@SuppressWarnings("deprecation")
 		private void crearAlert(String t, String s){
-    		AlertDialog alert = new AlertDialog.Builder(context).create();
+    		AlertDialog alert = new AlertDialog.Builder(Search.this).create();
 			alert.setTitle(t);
 			alert.setMessage(s);
 			alert.setButton("Close",new DialogInterface.OnClickListener() {

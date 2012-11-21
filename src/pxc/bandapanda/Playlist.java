@@ -6,11 +6,21 @@ public class Playlist {
 
 	private Vector<Song> playlist;
 	private int numSongs;
-	
+	private String name;
+	private int ID;
 	
 	public Playlist(){
+		name = "";
+		ID = -1;
+		numSongs = 0;
+		playlist = new Vector<Song>();
+	}
+	
+	public Playlist(String name, int id){
 		playlist = new Vector<Song>();
 		numSongs = 0;
+		this.name = name;
+		this.ID = id;
 	}
 	
 	public int getNumSongs() {
@@ -33,6 +43,22 @@ public class Playlist {
 	public void removeSong(int i){
 		playlist.remove(i);
 		--numSongs;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getID() {
+		return ID;
+	}
+
+	public void setID(int iD) {
+		ID = iD;
 	}
 	
 	
