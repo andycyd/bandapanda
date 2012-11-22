@@ -1,47 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="bottom"
+    android:gravity="bottom|fill_vertical"
     android:orientation="vertical" >
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:gravity="end"
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/textNewPlaylist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:maxLines="1" />
+
+        <Button
+            android:id="@+id/createPlaylist"
+            android:layout_width="156dp"
+            android:layout_height="wrap_content"
+            android:onClick="createPlaylist"
+            android:text="New Playlist" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:gravity="top" >
+
         <Button
             android:id="@+id/searchsongs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="searchSongs"
             android:text="SearchSongs" />
-
+
         <Button
             android:id="@+id/searchusers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Search Users" />
-
+
         <Button
             android:id="@+id/notifications"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Notifications" />
-
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Your playlists:"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
+
     <LinearLayout
-        android:id="@+id/playlistlayout"
+        android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/linearLayout3"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/linearLayout1"
         android:orientation="vertical" >
 
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your playlists:"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <ScrollView
+            android:id="@+id/scrollView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <LinearLayout
+                android:id="@+id/playlistlayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+            </LinearLayout>
+        </ScrollView>
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>

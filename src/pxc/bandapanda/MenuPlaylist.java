@@ -35,6 +35,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -50,7 +51,9 @@ public class MenuPlaylist extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
         context = this;
-        vectorPlaylists = new Vector<Playlist>();
+        Playlist p = new Playlist("Hola 1",1);
+        User.getInstance().addPlaylist(p);
+        vectorPlaylists = User.getInstance().getPlaylists();
         /* 
          * 
          * DESCOMENTAR ESTO PARA LA BUSQUEDA DE LAS PLAYLISTS!!!
@@ -65,15 +68,20 @@ public class MenuPlaylist extends FragmentActivity {
 		System.out.println("ponemos en su sitio");
 		
 		*/
+        refreshPlaylists();
+        
+    }
+    
+    
+    private void refreshPlaylists(){
         LinearLayout ll = (LinearLayout) findViewById(R.id.playlistlayout);
+        ll.removeAllViews();
         for(int i = 0; i < vectorPlaylists.size(); ++i){
             TextView t = new TextView(this);
             t.setText(vectorPlaylists.get(i).getName());
             ll.addView(t);
         }
-        
     }
-    
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_search, menu);
@@ -84,6 +92,13 @@ public class MenuPlaylist extends FragmentActivity {
     public void searchSongs(View view){
     	Intent i = new Intent(this, Search.class );
     	startActivity(i);       
+    }
+    
+    public void createPlaylist(View view){
+    	EditText et = (EditText) findViewById(R.id.textNewPlaylist);
+    	Playlist p = new Playlist(et.getText().toString(), 2);
+    	User.getInstance().addPlaylist(p);
+    	refreshPlaylists();
     }
     /*
      * 

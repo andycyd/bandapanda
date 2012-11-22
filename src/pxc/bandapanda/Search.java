@@ -65,7 +65,7 @@ public class Search extends FragmentActivity {
     int currentPage;
     int finished;
     int windowWidth;
-    int offs;
+    int offse;
 	String lastSearch;
     
 
@@ -76,7 +76,7 @@ public class Search extends FragmentActivity {
     	disp.getSize(point);
     	width = point.x;
         super.onCreate(savedInstanceState);
-        offs = 0;
+        offse = 0;
     	lastSearch = "ldfijghsdflkgvd";
         context = this;
         drawable = new Vector<Drawable>();
@@ -420,12 +420,15 @@ public class Search extends FragmentActivity {
     		TextView search = (TextView)findViewById(R.id.searchText);
     		HttpClient httpClient = new DefaultHttpClient();
     		String requestToSearch = search.getText().toString();
-    		if(lastSearch.equals(requestToSearch)) offs+=10;
-    		else offs = 0;
+    		if(lastSearch.equals(requestToSearch)) offse+=10;
+    		else offse = 0;
     		
     		lastSearch = requestToSearch;
+    		System.out.println("Offset: "+String.valueOf(offse));
+    		System.out.println("Buscamos: "+requestToSearch);
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&lim=10&offset="+offs);
+    		String t = "http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&lim=10&offset="+String.valueOf(offse);
+    		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
@@ -447,6 +450,7 @@ public class Search extends FragmentActivity {
     					String url = getString(R.string.resources_url)+rec.getString("audio_url");
     					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
     					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
+    					System.out.println(title);
     		    		resSearchSongs.add(s);
     				}
     			}
@@ -467,7 +471,7 @@ public class Search extends FragmentActivity {
 				crearAlert("Error", "Wrong parameters");
 			}
 			else if(results.equals("416")){
-				if(offs == 0) crearAlert("Error", "No songs match with the search");
+				if(offse == 0) crearAlert("Error", "No songs match with the search");
 				else crearAlert("Error", "No more songs avaliable");
 				
 			}
