@@ -65,6 +65,8 @@ public class Search extends FragmentActivity {
     int currentPage;
     int finished;
     int windowWidth;
+    int offs;
+	String lastSearch;
     
 
     @Override
@@ -74,7 +76,8 @@ public class Search extends FragmentActivity {
     	disp.getSize(point);
     	width = point.x;
         super.onCreate(savedInstanceState);
-        numSongs = 3;
+        offs = 0;
+    	lastSearch = "ldfijghsdflkgvd";
         context = this;
         drawable = new Vector<Drawable>();
         urlDrawables = new Vector<String>();
@@ -98,6 +101,16 @@ public class Search extends FragmentActivity {
     
     @SuppressWarnings("deprecation")
 	private void searchSongs(){
+    	resSearchSongs = new Vector<Song>();
+		LongRunningGetSearch lrgs = new LongRunningGetSearch();
+		finished = 0;
+		lrgs.execute();
+		while(finished != 1);
+		numSongs = resSearchSongs.size();
+    	LongRunningGetImages lrgi = new LongRunningGetImages();
+    	finished = 0;
+    	lrgi.execute();
+		while(finished != 1);
     	ScrollView scroll = (ScrollView) mViewPager.getChildAt(0);
 		LinearLayout finallayout = new LinearLayout(context);
     	finallayout.setOrientation(1);
@@ -151,13 +164,10 @@ public class Search extends FragmentActivity {
     		layout1.setOnClickListener(new OnClickListener() { 
                 public void onClick(View v){
                 	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
-                	System.out.println(((TextView) vert.getChildAt(2)).getText());
-                	CurrentPL current = CurrentPL.getInstance();
                 	int index = Integer.parseInt(((TextView) vert.getChildAt(2)).getText().toString());
-                	resSearchSongs.get(index).setDcover((Drawable) drawable.get(resSearchSongs.get(index).getCoverDrawablePointer()));
-                	current.addSong(resSearchSongs.get(index));
-                	Intent i = new Intent(context, MusicPlayer.class);
-                	startActivity(i);
+                	crearMenu(index);
+                	//Intent i = new Intent(context, MusicPlayer.class);
+                	//startActivity(i);
     			}
     		});
     		
@@ -169,6 +179,8 @@ public class Search extends FragmentActivity {
         mViewPager.addView(scroll, 0);
     }
     
+	
+    
     private void searchAlbums(){
     	
     }
@@ -177,29 +189,61 @@ public class Search extends FragmentActivity {
     	
     }
     
-    public void testClick(View view){    	
+    public void searchClick(View view){    	
     	hideInputMethod();
     	currentPage = mViewPager.getCurrentItem();
 		switch(currentPage){
-		case 0: 
-	    	resSearchSongs = new Vector<Song>();
-			LongRunningGetSearch lrgs = new LongRunningGetSearch();
-			finished = 0;
-			lrgs.execute();
-			System.out.println("acaba consulta");
-			while(finished != 1);
-			System.out.println("seguimos");
-			numSongs = resSearchSongs.size();
-	    	LongRunningGetImages lrgi = new LongRunningGetImages();
-	    	finished = 0;
-	    	lrgi.execute();
-	    	System.out.println("Acaba covers");
-			while(finished != 1); 
-			System.out.println("ponemos en su sitio");
-			searchSongs(); break;
+		case 0: searchSongs(); break;
 		case 2: searchAlbums(); break;
 		case 1: searchArtists(); break;
 		}
+    }
+    
+    private void crearMenu(final int index){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(resSearchSongs.get(index).getTitle());
+    	CharSequence[] item = {"Play", "Add to favorites", "Add to Playlist", "Share"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+					CurrentPL current = CurrentPL.getInstance();
+			    	resSearchSongs.get(index).setDcover((Drawable) drawable.get(resSearchSongs.get(index).getCoverDrawablePointer()));
+			    	current.addSong(resSearchSongs.get(index));
+					Intent i = new Intent(context, MusicPlayer.class);
+                	startActivity(i);
+				}
+				if(which == 1){
+					
+				}
+				if(which == 2){
+					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
+			    	b1.setTitle(resSearchSongs.get(index).getTitle());
+			    	CharSequence[] item = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "2", "3", "4", "5"};
+			    	b1.setItems(item, new DialogInterface.OnClickListener() {
+						
+						public void onClick(DialogInterface dialog, int which) {
+							if(which == 0){
+							}
+							if(which == 1){
+							}
+							if(which == 2){
+							}
+							if(which == 3){
+				
+							}
+							
+						}
+					});
+			    	b1.show();
+				}
+				if(which == 3){
+	
+				}
+				
+			}
+		});
+    	b.show();
     }
     
     
@@ -376,8 +420,12 @@ public class Search extends FragmentActivity {
     		TextView search = (TextView)findViewById(R.id.searchText);
     		HttpClient httpClient = new DefaultHttpClient();
     		String requestToSearch = search.getText().toString();
+    		if(lastSearch.equals(requestToSearch)) offs+=10;
+    		else offs = 0;
+    		
+    		lastSearch = requestToSearch;
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&limit=10&offset=0");
+    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&lim=10&offset="+offs);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
@@ -413,19 +461,20 @@ public class Search extends FragmentActivity {
     	
     	@SuppressWarnings("deprecation")
 		protected void onPostExecute(String results) {
-    		System.out.println("estamos en post execute");
     		if(results.equals("200") || results.equals("206")){
-				pd.dismiss();
 			}
-			else if(results.equals("400")){
+    		else if(results.equals("400")){
 				crearAlert("Error", "Wrong parameters");
 			}
 			else if(results.equals("416")){
-				crearAlert("Error", "No more songs avaliable");
+				if(offs == 0) crearAlert("Error", "No songs match with the search");
+				else crearAlert("Error", "No more songs avaliable");
+				
 			}
 			else{
 				crearAlert("Connection error", "No connection with the server");
 			}
+			pd.dismiss();
     	}
     	
     	@SuppressWarnings("deprecation")

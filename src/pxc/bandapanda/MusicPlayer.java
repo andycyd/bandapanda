@@ -19,7 +19,9 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -478,6 +480,16 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
 			return null;
 		}
 
+    }
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            Log.d(this.getClass().getName(), "back button pressed");
+            System.out.println("pulsado back");
+            mHandler.removeCallbacks(mUpdateTimeTask);
+        }
+        return super.onKeyDown(keyCode, event);
     }
  
 }

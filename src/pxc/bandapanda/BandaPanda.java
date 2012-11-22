@@ -45,11 +45,6 @@ public class BandaPanda extends FragmentActivity {
         
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_search, menu);
-        return true;
-    }
     
     public void clickLogin(View view){
     	switch (view.getId()){

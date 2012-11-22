@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="TemaPropi.Negre" parent="@android:Theme.Black">
+    <style name="TemaPropi.Negre" parent="@android:Theme.DeviceDefault">
         <item name="android:windowBackground">@drawable/bambu</item>
         <item name="android:colorBackground">#37B42A</item>
     </style>
