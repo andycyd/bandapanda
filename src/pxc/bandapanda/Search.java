@@ -48,6 +48,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -90,11 +91,23 @@ public class Search extends FragmentActivity {
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		windowWidth = metrics.widthPixels;
+		TextView search = (TextView) findViewById(R.id.searchText);
+		search.setOnClickListener( new OnClickListener(){
+			public void onClick(View v){
+				Button b = (Button) findViewById(R.id.buttonSearch);
+				b.setText("Search");
+				lastSearch = "sdkfjhnsdñflksd";
+				offse = 0;
+			}
+		});
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_search, menu);
+        getMenuInflater().inflate(R.menu.menu_search, menu);
+        
+        //Intent i = new Intent(context, MusicPlayer.class);
+    	//startActivity(i);
         return true;
     }
 
@@ -155,7 +168,6 @@ public class Search extends FragmentActivity {
     		
     		layout1.setOnLongClickListener(new OnLongClickListener() {
     			public boolean onLongClick(View v){
-    				System.out.println("Apretado: "+id);
 					return false;
     			}
     			
@@ -197,26 +209,37 @@ public class Search extends FragmentActivity {
 		case 2: searchAlbums(); break;
 		case 1: searchArtists(); break;
 		}
+		Button b = (Button) findViewById(R.id.buttonSearch);
+		if(!lastSearch.equals("sdkfjhnsdñflksd")) b.setText("More");
     }
+    
     
     private void crearMenu(final int index){
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(resSearchSongs.get(index).getTitle());
-    	CharSequence[] item = {"Play", "Add to favorites", "Add to Playlist", "Share"};
+    	CharSequence[] item = {"Play"," Add to current playlist", "Add to favorites", "Add to Playlist", "Share"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == 0){
 					CurrentPL current = CurrentPL.getInstance();
+					current.resetPlaylist();
 			    	resSearchSongs.get(index).setDcover((Drawable) drawable.get(resSearchSongs.get(index).getCoverDrawablePointer()));
 			    	current.addSong(resSearchSongs.get(index));
 					Intent i = new Intent(context, MusicPlayer.class);
                 	startActivity(i);
 				}
 				if(which == 1){
-					
+					CurrentPL current = CurrentPL.getInstance();
+			    	resSearchSongs.get(index).setDcover((Drawable) drawable.get(resSearchSongs.get(index).getCoverDrawablePointer()));
+			    	current.addSong(resSearchSongs.get(index));
+					Intent i = new Intent(context, MusicPlayer.class);
+                	startActivity(i);
 				}
 				if(which == 2){
+					
+				}
+				if(which == 3){
 					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
 			    	b1.setTitle(resSearchSongs.get(index).getTitle());
 			    	CharSequence[] item = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "2", "3", "4", "5"};
@@ -237,8 +260,8 @@ public class Search extends FragmentActivity {
 					});
 			    	b1.show();
 				}
-				if(which == 3){
-	
+				if(which == 4){
+					
 				}
 				
 			}
@@ -422,12 +445,9 @@ public class Search extends FragmentActivity {
     		String requestToSearch = search.getText().toString();
     		if(lastSearch.equals(requestToSearch)) offse+=10;
     		else offse = 0;
-    		
     		lastSearch = requestToSearch;
-    		System.out.println("Offset: "+String.valueOf(offse));
-    		System.out.println("Buscamos: "+requestToSearch);
     		HttpContext localContext = new BasicHttpContext();
-    		String t = "http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&lim=10&offset="+String.valueOf(offse);
+    		String t = "http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
     		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
@@ -450,12 +470,10 @@ public class Search extends FragmentActivity {
     					String url = getString(R.string.resources_url)+rec.getString("audio_url");
     					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
     					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
-    					System.out.println(title);
     		    		resSearchSongs.add(s);
     				}
     			}
 				finished = 1;
-    			System.out.println(String.valueOf(stl.getStatusCode()));
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
     			System.out.println("Error"+e.getLocalizedMessage());
@@ -472,11 +490,19 @@ public class Search extends FragmentActivity {
 			}
 			else if(results.equals("416")){
 				if(offse == 0) crearAlert("Error", "No songs match with the search");
-				else crearAlert("Error", "No more songs avaliable");
+				else {
+					crearAlert("Error", "No more songs avaliable");
+					Button b = (Button) findViewById(R.id.buttonSearch);
+					b.setText("Search");
+				}
+				lastSearch = "sdkfjhnsdñflksd";
+				offse = 0;
 				
 			}
 			else{
 				crearAlert("Connection error", "No connection with the server");
+				lastSearch = "sdkfjhnsdñflksd";
+				offse = 0;
 			}
 			pd.dismiss();
     	}

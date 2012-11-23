@@ -24,6 +24,11 @@ public class Playlist {
 		this.ID = id;
 	}
 	
+	public void resetPlaylist(){
+		playlist = new Vector<Song>();
+		numSongs = 0;
+	}
+	
 	public int getNumSongs() {
 		return numSongs;
 	}

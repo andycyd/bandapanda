@@ -82,6 +82,7 @@ public final class R {
         public static final int linearLayout2=0x7f08000a;
         public static final int linearLayout3=0x7f08000b;
         public static final int loginbutton=0x7f080025;
+        public static final int menu_play=0x7f080029;
         public static final int menu_settings=0x7f080028;
         public static final int notifications=0x7f080009;
         public static final int pager=0x7f080002;
@@ -116,6 +117,7 @@ public final class R {
     }
     public static final class menu {
         public static final int activity_search=0x7f070000;
+        public static final int menu_search=0x7f070001;
     }
     public static final class string {
         public static final int app_name=0x7f050000;
