@@ -110,13 +110,36 @@ public class Search extends FragmentActivity {
         return true;
     }
     
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.menu_play:
-        	Intent i = new Intent(context, MusicPlayer.class);
-        	startActivity(i);
+        	Intent in = new Intent(context, MusicPlayer.class);
+        	startActivity(in);
             return true;
+        case R.id.menu_play_all:
+            CurrentPL current = CurrentPL.getInstance();
+			current.resetPlaylist();
+			if(resSearchSongs.size() == 0){
+				AlertDialog alert = new AlertDialog.Builder(context).create();
+				alert.setTitle("Can't play");
+				alert.setMessage("No songs to be played");
+				alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+				alert.show();
+				return true;
+			}
+			for(int i = 0; i < resSearchSongs.size(); ++i){
+				resSearchSongs.get(i).setDcover((Drawable) drawable.get(resSearchSongs.get(i).getCoverDrawablePointer()));
+		    	current.addSong(resSearchSongs.get(i));
+			}
+			Intent in2 = new Intent(context, MusicPlayer.class);
+        	startActivity(in2);
+        	return true;
         default:
             return super.onOptionsItemSelected(item);
         }
@@ -189,8 +212,6 @@ public class Search extends FragmentActivity {
                 	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
                 	int index = Integer.parseInt(((TextView) vert.getChildAt(2)).getText().toString());
                 	crearMenu(index);
-                	//Intent i = new Intent(context, MusicPlayer.class);
-                	//startActivity(i);
     			}
     		});
     		
@@ -200,6 +221,9 @@ public class Search extends FragmentActivity {
         scroll.addView(finallayout);
         mViewPager.removeViewAt(0);
         mViewPager.addView(scroll, 0);
+        ScrollView scrollEmpty = new ScrollView(context);
+        mViewPager.removeViewAt(1);
+        mViewPager.addView(scrollEmpty, 1);
     }
     
 	
@@ -228,7 +252,7 @@ public class Search extends FragmentActivity {
     private void crearMenu(final int index){
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(resSearchSongs.get(index).getTitle());
-    	CharSequence[] item = {"Play"," Add to current playlist", "Add to favorites", "Add to Playlist", "Share"};
+    	CharSequence[] item = {"Play"," Add to playing now", "Add to favorites", "Add to a Playlist", "Share"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			
 			public void onClick(DialogInterface dialog, int which) {
@@ -258,6 +282,7 @@ public class Search extends FragmentActivity {
 			    	b1.setItems(item, new DialogInterface.OnClickListener() {
 						
 						public void onClick(DialogInterface dialog, int which) {
+							// HAY QUE MODIFICAR PARA AÑADIRLA EN LA API, NO EN LOCAL
 							User.getInstance().addSongToPlaylist(which, resSearchSongs.get(index));
 						}
 					});
@@ -457,7 +482,7 @@ public class Search extends FragmentActivity {
     			StatusLine stl = response.getStatusLine();
     			HttpEntity ent = response.getEntity();
     			String res = String.valueOf(stl.getStatusCode());
-    			if(res.equals("200")){
+    			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
     				//System.out.println(src);
     				JSONArray result = new JSONArray(src);

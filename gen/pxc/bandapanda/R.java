@@ -84,6 +84,7 @@ public final class R {
         public static final int loginbutton=0x7f080021;
         public static final int menu_new=0x7f080025;
         public static final int menu_play=0x7f080026;
+        public static final int menu_play_all=0x7f080027;
         public static final int menu_settings=0x7f080024;
         public static final int pager=0x7f080002;
         public static final int pager_title_strip=0x7f080003;

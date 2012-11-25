@@ -10,7 +10,7 @@ public class Playlist {
 	private int ID;
 	
 	public Playlist(){
-		name = "";
+		name = null;
 		ID = -1;
 		numSongs = 0;
 		playlist = new Vector<Song>();

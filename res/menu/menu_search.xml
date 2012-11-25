@@ -5,4 +5,10 @@
         android:showAsAction="never" >
         <menu></menu>
     </item>
+    <item android:id="@+id/menu_play_all"
+        android:title="Play all"
+        android:orderInCategory="100"
+        android:showAsAction="never" >
+        <menu></menu>
+    </item>
 </menu>

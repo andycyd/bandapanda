@@ -120,9 +120,7 @@ public class MenuPlaylist extends FragmentActivity {
     	    .setView(input)
     	    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
     	         public void onClick(DialogInterface dialog, int whichButton) {
-    	             //Editable editable = input.getText(); 
-    	             Playlist p = new Playlist(input.getText().toString(), 2);
-    	         	User.getInstance().addPlaylist(p);
+    	            createPlaylist(input.getText().toString());
     	         	refreshPlaylists();
     	         }
     	    })
@@ -131,6 +129,12 @@ public class MenuPlaylist extends FragmentActivity {
     	                // Do nothing.
     	         }
     	    }).show();
+    }
+    
+    public void createPlaylist(String name){
+    	// FALTA LLAMAR A CREAR PLAYLIST DE LA API
+    	Playlist p = new Playlist(name, 2);
+     	User.getInstance().addPlaylist(p);
     }
   
     
@@ -153,7 +157,12 @@ public class MenuPlaylist extends FragmentActivity {
 				current.resetPlaylist();
 				urlDrawables = new Vector<String>();
 				drawable = new Vector<Drawable>();
-			    numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+				// DESCOMENTAR CUANDO TENGAMOS LA LLAMADA GET PLAYLIST
+			    /*LongRunningGetOnePlaylist lrgop = new LongRunningGetOnePlaylist(position);
+			    finished = 0;
+			    lrgop.execute();
+				while(finished != 1);*/
+				numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
 			    if(numSongs == 0){
 			    	AlertDialog alert = new AlertDialog.Builder(context).create();
 					alert.setTitle("Can't play");
@@ -189,22 +198,8 @@ public class MenuPlaylist extends FragmentActivity {
     	startActivity(i);       
     }
     
-    /*public void createPlaylist(View view){
-    	EditText et = (EditText) findViewById(R.id.textNewPlaylist);
-    	Playlist p = new Playlist(et.getText().toString(), 2);
-    	User.getInstance().addPlaylist(p);
-    	refreshPlaylists();
-    }*/
-    /*
-     * 
-     * 
-     * * 
-         * DESCOMENTAR ESTO PARA LA BUSQUEDA DE LAS PLAYLISTS!!!
-         * 
-         * 
-         * 
-         * 
-         * 
+    
+ 
     public class LongRunningGetPlaylists extends AsyncTask <Void, Void, String> {
 
     	
@@ -285,8 +280,108 @@ public class MenuPlaylist extends FragmentActivity {
     			alert.show();
 			}
     	}
-    }    */
+    }
 
+    public class LongRunningGetOnePlaylist extends AsyncTask <Void, Void, String> {
+
+    	
+	    ProgressDialog pd;
+	    int idPlaylist;
+	    int position;
+	    
+	    public LongRunningGetOnePlaylist(int a){
+	    	position = a;
+	    	idPlaylist = User.getInstance().getPlaylists().get(position).getID();
+    	}
+	    
+	    @Override
+	    protected void onPreExecute(){
+
+		    pd = new ProgressDialog(context);
+
+	       	pd.setMessage("Loading playlist...");
+	       	pd.setCancelable(false);
+	       	pd.setIndeterminate(true);
+	       	pd.show();
+        }
+	    
+	    
+    	@Override
+    	protected String doInBackground(Void... params) {
+    		HttpClient httpClient = new DefaultHttpClient();
+    		HttpContext localContext = new BasicHttpContext();
+    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/playlists/"+idPlaylist);
+    		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+    		try {
+    			HttpResponse response = httpClient.execute(httpget, localContext);
+    			StatusLine stl = response.getStatusLine();
+    			// OJO! quizas falta comprovar que response status sea 200
+    			/*
+    			 * 
+    			 * 
+    			 * FALTA TRATAR QUE NOS DEVUELVA UNA PARTE DE LAS CANCIONES, AHORA SOLO DEVUELVE UNA PARTE DE LAS CANCIONES
+    			 * 
+    			 * 
+    			 */
+    			HttpEntity ent = response.getEntity();
+    			String src = EntityUtils.toString(ent);
+    			JSONObject result = new JSONObject(src);
+    			JSONArray playl = result.getJSONArray("songs");
+    			for (int i = 0; i < playl.length(); ++i) {
+    				JSONObject rec = playl.getJSONObject(i);
+				    int ID = Integer.parseInt(rec.getString("song_id"));
+					String title = rec.getString("song_title");
+					int IDalbum = Integer.parseInt(rec.getString("album_id"));
+					String album = rec.getString("album_title");
+					int IDgroup = Integer.parseInt(rec.getString("artist_id"));
+					String group = rec.getString("artist_name");
+					String url = getString(R.string.resources_url)+rec.getString("audio_url");
+					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
+					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
+					User.getInstance().getPlaylists().get(position).addSong(s);
+    			}
+				finished = 1;
+    			return String.valueOf(stl.getStatusCode());
+    		} catch (Exception e) {
+    			System.out.println("Error"+e.getLocalizedMessage());
+    			return e.getLocalizedMessage();
+    		}
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
+    		if(results.equals("200")){
+				pd.dismiss();
+			}
+			else if(results.equals("401")){
+
+    			AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
+    			alert.setTitle("Login error");
+    			alert.setMessage("User/Password incorrect.");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			pd.dismiss();
+    			alert.show();
+			}
+			else{
+
+    			AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
+    			alert.setTitle("Connection error");
+    			alert.setMessage("No connection with the server");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			pd.dismiss();
+    			alert.show();
+			}
+    	}
+    }
+    
 
     public class LongRunningGetImages extends AsyncTask <Void, Void, String> {
 
