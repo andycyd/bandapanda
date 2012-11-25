@@ -44,6 +44,8 @@ import android.support.v4.view.ViewPager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
@@ -105,10 +107,19 @@ public class Search extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_search, menu);
-        
-        //Intent i = new Intent(context, MusicPlayer.class);
-    	//startActivity(i);
         return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.menu_play:
+        	Intent i = new Intent(context, MusicPlayer.class);
+        	startActivity(i);
+            return true;
+        default:
+            return super.onOptionsItemSelected(item);
+        }
     }
 
     
@@ -233,8 +244,6 @@ public class Search extends FragmentActivity {
 					CurrentPL current = CurrentPL.getInstance();
 			    	resSearchSongs.get(index).setDcover((Drawable) drawable.get(resSearchSongs.get(index).getCoverDrawablePointer()));
 			    	current.addSong(resSearchSongs.get(index));
-					Intent i = new Intent(context, MusicPlayer.class);
-                	startActivity(i);
 				}
 				if(which == 2){
 					
@@ -242,20 +251,14 @@ public class Search extends FragmentActivity {
 				if(which == 3){
 					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
 			    	b1.setTitle(resSearchSongs.get(index).getTitle());
-			    	CharSequence[] item = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "2", "3", "4", "5"};
+			    	CharSequence[] item = new CharSequence[User.getInstance().getNumberPlaylists()];
+			    	for(int i = 0; i < User.getInstance().getNumberPlaylists(); ++i){
+			    		item[i]= User.getInstance().getNamePlaylist(i);
+			    	}
 			    	b1.setItems(item, new DialogInterface.OnClickListener() {
 						
 						public void onClick(DialogInterface dialog, int which) {
-							if(which == 0){
-							}
-							if(which == 1){
-							}
-							if(which == 2){
-							}
-							if(which == 3){
-				
-							}
-							
+							User.getInstance().addSongToPlaylist(which, resSearchSongs.get(index));
 						}
 					});
 			    	b1.show();
@@ -410,7 +413,6 @@ public class Search extends FragmentActivity {
 						}
 					}
 	        	}
-	        	System.out.println("tenemos todas las covers");
 	        	finished = 1;
 			} catch (Exception ex) {
 				return null;
@@ -481,7 +483,7 @@ public class Search extends FragmentActivity {
     		}
     	}
     	
-    	@SuppressWarnings("deprecation")
+    	
 		protected void onPostExecute(String results) {
     		if(results.equals("200") || results.equals("206")){
 			}

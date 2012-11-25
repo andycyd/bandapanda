@@ -1,8 +1,5 @@
 <resources>
-
-    <style name="AppTheme" parent="android:Theme.Black">
-        
+	<style name="windowbackground">
+        <item name="android:colorBackground">#000000</item> 	    
     </style>
-        
-
 </resources>

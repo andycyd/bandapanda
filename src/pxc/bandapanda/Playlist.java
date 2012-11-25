@@ -46,6 +46,11 @@ public class Playlist {
 		++numSongs;
 	}
 	
+	public void addSongAt(int pos, Song s){
+		playlist.add(pos, s);
+		++numSongs;
+	}
+	
 	public void removeSong(int i){
 		playlist.remove(i);
 		--numSongs;

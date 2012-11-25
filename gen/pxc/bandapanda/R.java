@@ -61,48 +61,45 @@ public final class R {
         public static final int track_info_bg=0x7f02002c;
     }
     public static final class id {
-        public static final int btnBackward=0x7f080016;
-        public static final int btnForward=0x7f080018;
-        public static final int btnNext=0x7f080019;
-        public static final int btnPlay=0x7f080017;
-        public static final int btnPlaylist=0x7f080011;
-        public static final int btnPrevious=0x7f080015;
-        public static final int btnRepeat=0x7f08001e;
-        public static final int btnShuffle=0x7f08001f;
+        public static final int btnBackward=0x7f080012;
+        public static final int btnForward=0x7f080014;
+        public static final int btnNext=0x7f080015;
+        public static final int btnPlay=0x7f080013;
+        public static final int btnPlaylist=0x7f08000d;
+        public static final int btnPrevious=0x7f080011;
+        public static final int btnRepeat=0x7f08001a;
+        public static final int btnShuffle=0x7f08001b;
         public static final int buttonSearch=0x7f080001;
-        public static final int coverImage=0x7f080013;
-        public static final int createPlaylist=0x7f080005;
-        public static final int createacount=0x7f080026;
-        public static final int editText1=0x7f080021;
-        public static final int hiperb=0x7f080027;
-        public static final int imageView1=0x7f080020;
-        public static final int laypasswd=0x7f080024;
-        public static final int layusername=0x7f080023;
-        public static final int linearLayout1=0x7f080006;
-        public static final int linearLayout2=0x7f08000a;
-        public static final int linearLayout3=0x7f08000b;
-        public static final int loginbutton=0x7f080025;
-        public static final int menu_play=0x7f080029;
-        public static final int menu_settings=0x7f080028;
-        public static final int notifications=0x7f080009;
+        public static final int coverImage=0x7f08000f;
+        public static final int createacount=0x7f080022;
+        public static final int editText1=0x7f08001d;
+        public static final int hiperb=0x7f080023;
+        public static final int imageView1=0x7f08001c;
+        public static final int laypasswd=0x7f080020;
+        public static final int layusername=0x7f08001f;
+        public static final int linearLayout1=0x7f080004;
+        public static final int linearLayout2=0x7f080007;
+        public static final int linearLayout3=0x7f080008;
+        public static final int lisOfPlaylists=0x7f08000a;
+        public static final int loginbutton=0x7f080021;
+        public static final int menu_new=0x7f080025;
+        public static final int menu_play=0x7f080026;
+        public static final int menu_settings=0x7f080024;
         public static final int pager=0x7f080002;
         public static final int pager_title_strip=0x7f080003;
-        public static final int player_footer_bg=0x7f080014;
-        public static final int player_header_bg=0x7f08000f;
-        public static final int playlistlayout=0x7f08000e;
-        public static final int scrollView1=0x7f08000d;
+        public static final int player_footer_bg=0x7f080010;
+        public static final int player_header_bg=0x7f08000b;
         public static final int searchText=0x7f080000;
-        public static final int searchsongs=0x7f080007;
-        public static final int searchusers=0x7f080008;
-        public static final int songCurrentDurationLabel=0x7f08001c;
-        public static final int songProgressBar=0x7f08001a;
-        public static final int songThumbnail=0x7f080012;
-        public static final int songTitle=0x7f080010;
-        public static final int songTotalDurationLabel=0x7f08001d;
-        public static final int textNewPlaylist=0x7f080004;
-        public static final int textView1=0x7f08000c;
-        public static final int textpasswd=0x7f080022;
-        public static final int timerDisplay=0x7f08001b;
+        public static final int searchsongs=0x7f080005;
+        public static final int searchusers=0x7f080006;
+        public static final int songCurrentDurationLabel=0x7f080018;
+        public static final int songProgressBar=0x7f080016;
+        public static final int songThumbnail=0x7f08000e;
+        public static final int songTitle=0x7f08000c;
+        public static final int songTotalDurationLabel=0x7f080019;
+        public static final int textView1=0x7f080009;
+        public static final int textpasswd=0x7f08001e;
+        public static final int timerDisplay=0x7f080017;
     }
     public static final class layout {
         public static final int activity_search=0x7f030000;
@@ -117,7 +114,8 @@ public final class R {
     }
     public static final class menu {
         public static final int activity_search=0x7f070000;
-        public static final int menu_search=0x7f070001;
+        public static final int menu_playlists=0x7f070001;
+        public static final int menu_search=0x7f070002;
     }
     public static final class string {
         public static final int app_name=0x7f050000;
@@ -130,7 +128,8 @@ public final class R {
         public static final int title_section3=0x7f050001;
     }
     public static final class style {
-        public static final int AppTheme=0x7f060000;
-        public static final int TemaPropi_Negre=0x7f060001;
+        public static final int AppTheme=0x7f060001;
+        public static final int TemaPropi_Negre=0x7f060002;
+        public static final int windowbackground=0x7f060000;
     }
 }

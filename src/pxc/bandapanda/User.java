@@ -8,12 +8,16 @@ public class User {
 	    
 		private int ID;
 		private String token;
-		private static User instance;
 		private String user;
 		private static Vector<Playlist> playlists;
+		private static User instance;
 		
 		static{
 			instance = new User();
+		}
+		
+		public void addSongToPlaylist(int id, Song s){
+			playlists.get(id).addSong(s);
 		}
 		
 		public void addPlaylist(String name, int id){

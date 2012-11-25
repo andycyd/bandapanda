@@ -1,7 +1,12 @@
 package pxc.bandapanda;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -23,36 +28,54 @@ import org.json.JSONObject;
 
 import pxc.bandapanda.Search.LongRunningGetImages;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.text.Editable;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 
 public class MenuPlaylist extends FragmentActivity {
    public static Context context;
 
    Vector<Playlist> vectorPlaylists;
    int finished;
+   Vector<String> urlDrawables;
+   Vector<Drawable> drawable;
+   int numSongs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
         context = this;
-        Playlist p = new Playlist("Hola 1",1);
-        User.getInstance().addPlaylist(p);
+        for(int i = 0; i < 20; ++i){
+        	Playlist p = new Playlist("Hola "+i,i);
+            User.getInstance().addPlaylist(p);
+        }
         vectorPlaylists = User.getInstance().getPlaylists();
         /* 
          * 
@@ -72,21 +95,93 @@ public class MenuPlaylist extends FragmentActivity {
         
     }
     
-    
-    private void refreshPlaylists(){
-        LinearLayout ll = (LinearLayout) findViewById(R.id.playlistlayout);
-        ll.removeAllViews();
-        for(int i = 0; i < vectorPlaylists.size(); ++i){
-            TextView t = new TextView(this);
-            t.setText(vectorPlaylists.get(i).getName());
-            ll.addView(t);
-        }
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_search, menu);
+        getMenuInflater().inflate(R.menu.menu_playlists, menu);
         return true;
     }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.menu_new:
+        	createNewPlaylist();
+            return true;
+        default:
+            return super.onOptionsItemSelected(item);
+        }
+    }
+    
+    void createNewPlaylist(){
+    	final EditText input = new EditText(context);
+    	new AlertDialog.Builder(this)
+    	    .setTitle("Create Playlist")
+    	    .setMessage("Select the name for the playlist")
+    	    .setView(input)
+    	    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+    	         public void onClick(DialogInterface dialog, int whichButton) {
+    	             //Editable editable = input.getText(); 
+    	             Playlist p = new Playlist(input.getText().toString(), 2);
+    	         	User.getInstance().addPlaylist(p);
+    	         	refreshPlaylists();
+    	         }
+    	    })
+    	    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+    	         public void onClick(DialogInterface dialog, int whichButton) {
+    	                // Do nothing.
+    	         }
+    	    }).show();
+    }
+  
+    
+	private void refreshPlaylists(){
+
+        String[] playlists = new String[vectorPlaylists.size()];        
+        ListView list = (ListView) findViewById(R.id.lisOfPlaylists);
+        for(int i = 0; i < vectorPlaylists.size(); ++i){
+        	playlists[i] = vectorPlaylists.get(i).getName();
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+        		  android.R.layout.simple_list_item_1, android.R.id.text1, playlists);
+        list.setAdapter(adapter);
+        list.setOnItemClickListener(new OnItemClickListener() {
+
+        	 @SuppressWarnings("deprecation")
+			public void onItemClick(AdapterView<?> parent, View view,
+                     int position, long id) {
+        		CurrentPL current = CurrentPL.getInstance();
+				current.resetPlaylist();
+				urlDrawables = new Vector<String>();
+				drawable = new Vector<Drawable>();
+			    numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+			    if(numSongs == 0){
+			    	AlertDialog alert = new AlertDialog.Builder(context).create();
+					alert.setTitle("Can't play");
+					alert.setMessage("No songs for this playlist");
+					alert.setButton("Close",new DialogInterface.OnClickListener() {
+						
+						public void onClick(final DialogInterface dialog, final int which) {
+						}
+					});
+					alert.show();
+			    	return;
+			    }
+			    LongRunningGetImages lrgi = new LongRunningGetImages(position);
+		    	finished = 0;
+		    	lrgi.execute();
+				while(finished != 1);
+			    for(int i = 0; i < numSongs; ++i){
+			    	User.getInstance().getPlaylists().get(position).getSong(i).setDcover((Drawable) drawable.get(User.getInstance().getPlaylists().get(position).getSong(i).getCoverDrawablePointer()));
+			    	current.addSong(User.getInstance().getPlaylists().get(position).getSong(i));
+			    }
+				Intent i = new Intent(context, MusicPlayer.class);
+             	startActivity(i);
+        		 
+                 
+             }
+         });
+    }
+    
     
     
     public void searchSongs(View view){
@@ -94,12 +189,12 @@ public class MenuPlaylist extends FragmentActivity {
     	startActivity(i);       
     }
     
-    public void createPlaylist(View view){
+    /*public void createPlaylist(View view){
     	EditText et = (EditText) findViewById(R.id.textNewPlaylist);
     	Playlist p = new Playlist(et.getText().toString(), 2);
     	User.getInstance().addPlaylist(p);
     	refreshPlaylists();
-    }
+    }*/
     /*
      * 
      * 
@@ -193,7 +288,86 @@ public class MenuPlaylist extends FragmentActivity {
     }    */
 
 
+    public class LongRunningGetImages extends AsyncTask <Void, Void, String> {
 
-    
+    	ProgressDialog pd;
+    	int position;
+
+    	
+    	public LongRunningGetImages(int a){
+    		position = a;
+    	}
+    	
+        public Object fetch(String address) throws MalformedURLException, IOException{
+			URL url = new URL(address);
+			Object content = url.getContent();
+			return content;
+        	
+        }
+        
+
+        private Drawable ImageOperations(Context ctx, String url) {
+            try {
+                InputStream is = (InputStream) this.fetch(url);
+                Drawable d = Drawable.createFromStream(is, "src");
+                return d;
+            } catch (MalformedURLException e) {
+                return null;
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        
+       @Override
+       protected void onPreExecute(){
+    	    pd = new ProgressDialog(context);
+          	pd.setMessage("Loading...");
+          	pd.setCancelable(false);
+          	pd.setIndeterminate(true);
+          	pd.show();
+       }
+       
+       @Override 
+       protected void onPostExecute(final String s){
+    	   pd.dismiss();
+       }
+    	@Override
+		protected String doInBackground(Void... params) {
+			try {
+				String currentUrl;
+	        	for(int i = 0; i < numSongs; ++i){
+	        		currentUrl = User.getInstance().getPlaylists().get(position).getSong(i).getCover();
+					if(!urlDrawables.contains(currentUrl)){
+						urlDrawables.add(currentUrl);
+						drawable.add(ImageOperations(context,currentUrl));
+						Song aux = User.getInstance().getPlaylists().get(position).getSong(i);
+						User.getInstance().getPlaylists().get(position).removeSong(i);
+						aux.setCoverDrawablePointer(drawable.size()-1);
+						User.getInstance().getPlaylists().get(position).addSongAt(i, aux);
+					}
+					else{
+						int trob = 0;
+						int a = 0;
+						while(trob == 0){
+							if(urlDrawables.get(a).equals(currentUrl)){
+								Song aux = User.getInstance().getPlaylists().get(position).getSong(i);
+								User.getInstance().getPlaylists().get(position).removeSong(i);
+								aux.setCoverDrawablePointer(drawable.size()-1);
+								User.getInstance().getPlaylists().get(position).addSongAt(i, aux);
+								trob = 1;
+							}
+							else a++;
+						}
+					}
+	        	}
+	        	finished = 1;
+			} catch (Exception ex) {
+				return null;
+			}
+           
+			return null;
+		}
+
+    }
     
 }
