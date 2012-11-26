@@ -63,11 +63,13 @@ public class Search extends FragmentActivity {
     ViewPager mViewPager;
     int numSongs;
     int numArtists;
+    int numAlbums;
     int width;
     Vector<String> urlDrawables;
     Vector<Drawable> drawable;
     Vector<Song> resSearchSongs;
     Vector<Artist> resSearchArtists;
+    Vector<Album> resSearchAlbums;
     int currentPage;
     int finished;
     int windowWidth;
@@ -89,6 +91,7 @@ public class Search extends FragmentActivity {
         urlDrawables = new Vector<String>();
         resSearchSongs = new Vector<Song>();
         resSearchArtists = new Vector<Artist>();
+        resSearchAlbums = new Vector<Album>();
         setContentView(R.layout.activity_search);
 		pageAdapter = new CustomPageAdapter(context);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -124,6 +127,7 @@ public class Search extends FragmentActivity {
 		        urlDrawables = new Vector<String>();
 		        resSearchSongs = new Vector<Song>();
 		        resSearchArtists = new Vector<Artist>();
+		        resSearchAlbums = new Vector<Album>();
 			}
     		
     	});
@@ -241,7 +245,69 @@ public class Search extends FragmentActivity {
 	
     
     private void searchAlbums(){
-    	
+    	resSearchAlbums = new Vector<Album>();
+    	LongRunningGetSearchAlbum lrgsa = new LongRunningGetSearchAlbum();
+		finished = 0;
+		lrgsa.execute();
+		while(finished != 1);
+		numAlbums = resSearchAlbums.size();
+		LongRunningGetCoverAlbums lrgi = new LongRunningGetCoverAlbums();
+    	finished = 0;
+    	lrgi.execute();
+		while(finished != 1);
+    	ScrollView scroll = (ScrollView) mViewPager.getChildAt(1);
+		LinearLayout finallayout = new LinearLayout(context);
+    	finallayout.setOrientation(1);
+    	int i;
+    	for(i = 0; i < numAlbums; ++i){
+    		System.out.println("Bucle "+i);
+    		final LinearLayout layout1 = new LinearLayout(context);
+    		LinearLayout vertical1 = new LinearLayout(context);
+    		vertical1.setOrientation(1);
+    		final TextView album = new TextView(context);
+    		album.setText(resSearchAlbums.get(i).getName());
+    		album.setTextSize(30);
+    		vertical1.addView(album);
+    		
+    		layout1.setOrientation(0);
+    		final ImageView image = new ImageView(context);
+    		if(resSearchAlbums.get(i).getCoverDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
+    		else {
+
+                Drawable d = (Drawable) drawable.get(resSearchAlbums.get(i).getCoverDrawablePointer());
+                Bitmap bd = ((BitmapDrawable) d).getBitmap();
+                Display display = getWindowManager().getDefaultDisplay();
+                Point size = new Point();
+                display.getSize(size);
+                double resize = 0.25;
+                int y = (int) (size.y*resize);
+                int x = (int) (size.x*resize); 
+                if(x > y) x= y;
+                Bitmap bitmapOrig = Bitmap.createScaledBitmap(bd, x, x, false);
+    			image.setImageDrawable(new BitmapDrawable(bitmapOrig));
+    		}
+    		layout1.addView(image);
+    		layout1.addView(vertical1);
+    		final int id = i;
+    		
+    		layout1.setOnClickListener(new OnClickListener() { 
+                public void onClick(View v){
+                	//crearMenuArtist(id);
+                	System.out.println("clicado album "+id);
+    			}
+    		});
+    		
+    		finallayout.addView(layout1);
+    	}
+    	scroll.removeAllViews();
+        scroll.addView(finallayout);
+        scroll = in
+        mViewPager.removeViewAt(2);
+        mViewPager.removeAllViews();
+        mViewPager.addView(scroll, 2);
+        ScrollView scrollEmpty = new ScrollView(context);
+        //mViewPager.removeViewAt(2);
+        //mViewPager.addView(scrollEmpty, 2);
     }
     
     private void searchArtists(){
@@ -511,6 +577,87 @@ public class Search extends FragmentActivity {
 								resSearchSongs.remove(i);
 								aux.setCoverDrawablePointer(a);
 								resSearchSongs.add(i, aux);
+								trob = 1;
+							}
+							else a++;
+						}
+					}
+	        	}
+	        	finished = 1;
+			} catch (Exception ex) {
+				return null;
+			}
+           
+			return null;
+		}
+
+    }
+    
+    public class LongRunningGetCoverAlbums extends AsyncTask <Void, Void, String> {
+
+    	ProgressDialog pd;
+
+    	
+    	public LongRunningGetCoverAlbums(){
+
+    	}
+    	
+        public Object fetch(String address) throws MalformedURLException, IOException{
+			URL url = new URL(address);
+			Object content = url.getContent();
+			return content;
+        	
+        }
+        
+
+        private Drawable ImageOperations(Context ctx, String url) {
+            try {
+                InputStream is = (InputStream) this.fetch(url);
+                Drawable d = Drawable.createFromStream(is, "src");
+                return d;
+            } catch (MalformedURLException e) {
+                return null;
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        
+       @Override
+       protected void onPreExecute(){
+    	    pd = new ProgressDialog(context);
+          	pd.setMessage("Searching...");
+          	pd.setCancelable(false);
+          	pd.setIndeterminate(true);
+          	pd.show();
+       }
+       
+       @Override 
+       protected void onPostExecute(final String s){
+    	   pd.dismiss();
+       }
+    	@Override
+		protected String doInBackground(Void... params) {
+			try {
+				String currentUrl;
+	        	for(int i = 0; i < numAlbums; ++i){
+	        		currentUrl = resSearchAlbums.get(i).getCover();
+					if(!urlDrawables.contains(currentUrl)){
+						urlDrawables.add(currentUrl);
+						drawable.add(ImageOperations(context,currentUrl));
+						Album aux = resSearchAlbums.get(i);
+						resSearchAlbums.remove(i);
+						aux.setCoverDrawablePointer(drawable.size()-1);
+						resSearchAlbums.add(i, aux);
+					}
+					else{
+						int trob = 0;
+						int a = 0;
+						while(trob == 0){
+							if(urlDrawables.get(a).equals(currentUrl)){
+								Album aux = resSearchAlbums.get(i);
+								resSearchAlbums.remove(i);
+								aux.setCoverDrawablePointer(a);
+								resSearchAlbums.add(i, aux);
 								trob = 1;
 							}
 							else a++;
@@ -808,6 +955,102 @@ public class LongRunningGetSearchArtist extends AsyncTask <Void, Void, String> {
 			alert.show();
     	}
     }
+
+public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
+
+	
+    ProgressDialog pd;
+    
+    @Override
+    protected void onPreExecute(){
+
+	    pd = new ProgressDialog(context);
+
+       	pd.setMessage("Searching...");
+       	pd.setCancelable(false);
+       	pd.setIndeterminate(true);
+       	pd.show();
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		TextView search = (TextView)findViewById(R.id.searchText);
+		HttpClient httpClient = new DefaultHttpClient();
+		String requestToSearch = search.getText().toString();
+		if(lastSearch.equals(requestToSearch)) offse+=15;
+		else offse = 0;
+		lastSearch = requestToSearch;
+		HttpContext localContext = new BasicHttpContext();
+		String t = "http://polar-thicket-1771.herokuapp.com/albums/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
+		HttpGet httpget = new HttpGet(t);
+		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			HttpResponse response = httpClient.execute(httpget, localContext);
+			StatusLine stl = response.getStatusLine();
+			HttpEntity ent = response.getEntity();
+			String res = String.valueOf(stl.getStatusCode());
+			if(res.equals("200") || res.equals("206")){
+				String src = EntityUtils.toString(ent);
+				JSONArray result = new JSONArray(src);
+				for (int i = 0; i < result.length(); ++i) {
+				    JSONObject rec = result.getJSONObject(i);
+				    int ID = Integer.parseInt(rec.getString("album_id"));
+					String name = rec.getString("album_title");
+					int IDart = Integer.parseInt(rec.getString("artist_id"));
+					String nameart = rec.getString("artist_name");
+					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
+					Album al = new Album(ID, name, IDart, nameart, cover);
+		    		resSearchAlbums.add(al);
+				}
+			}
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	
+	protected void onPostExecute(String results) {
+		if(results.equals("200") || results.equals("206")){
+		}
+		else if(results.equals("400")){
+			crearAlert("Error", "Wrong parameters");
+		}
+		else if(results.equals("416")){
+			if(offse == 0) crearAlert("Error", "No albums match with the search");
+			else {
+				crearAlert("Error", "No more albums avaliable");
+				Button b = (Button) findViewById(R.id.buttonSearch);
+				b.setText("Search");
+			}
+			lastSearch = "sdkfjhnsdñflksd";
+			offse = 0;
+			
+		}
+		else{
+			crearAlert("Connection error", "No connection with the server");
+			lastSearch = "sdkfjhnsdñflksd";
+			offse = 0;
+		}
+		pd.dismiss();
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void crearAlert(String t, String s){
+		AlertDialog alert = new AlertDialog.Builder(Search.this).create();
+		alert.setTitle(t);
+		alert.setMessage(s);
+		alert.setButton("Close",new DialogInterface.OnClickListener() {
+			
+			public void onClick(final DialogInterface dialog, final int which) {
+			}
+		});
+		alert.show();
+	}
+}
     
     
   

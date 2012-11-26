@@ -11,7 +11,6 @@ public class Artist {
 	public Artist(){
 		ID = -1;
 	}
-	
 	public Artist(int id, String n, String c){
 		ID = id;
 		name = n;
