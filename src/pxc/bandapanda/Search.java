@@ -41,6 +41,7 @@ import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Menu;
@@ -61,10 +62,12 @@ public class Search extends FragmentActivity {
     private static Context context;
     ViewPager mViewPager;
     int numSongs;
+    int numArtists;
     int width;
     Vector<String> urlDrawables;
     Vector<Drawable> drawable;
     Vector<Song> resSearchSongs;
+    Vector<Artist> resSearchArtists;
     int currentPage;
     int finished;
     int windowWidth;
@@ -85,6 +88,7 @@ public class Search extends FragmentActivity {
         drawable = new Vector<Drawable>();
         urlDrawables = new Vector<String>();
         resSearchSongs = new Vector<Song>();
+        resSearchArtists = new Vector<Artist>();
         setContentView(R.layout.activity_search);
 		pageAdapter = new CustomPageAdapter(context);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -102,6 +106,27 @@ public class Search extends FragmentActivity {
 				offse = 0;
 			}
 		});
+		mViewPager.setOnPageChangeListener(new OnPageChangeListener(){
+			public void onPageScrollStateChanged(int arg0) {
+
+			}
+
+			public void onPageScrolled(int arg0, float arg1, int arg2) {
+				
+			}
+
+			public void onPageSelected(int arg0) {
+				Button b = (Button) findViewById(R.id.buttonSearch);
+				b.setText("Search");
+				lastSearch = "sdkfjhnsdñflksd";
+				offse = 0;
+				drawable = new Vector<Drawable>();
+		        urlDrawables = new Vector<String>();
+		        resSearchSongs = new Vector<Song>();
+		        resSearchArtists = new Vector<Artist>();
+			}
+    		
+    	});
     }
 
     @Override
@@ -149,14 +174,14 @@ public class Search extends FragmentActivity {
     @SuppressWarnings("deprecation")
 	private void searchSongs(){
     	resSearchSongs = new Vector<Song>();
-		LongRunningGetSearch lrgs = new LongRunningGetSearch();
+    	LongRunningGetSearchSongs lrgs = new LongRunningGetSearchSongs();
 		finished = 0;
 		lrgs.execute();
 		while(finished != 1);
 		numSongs = resSearchSongs.size();
-    	LongRunningGetImages lrgi = new LongRunningGetImages();
+		LongRunningGetCovers lrgc = new LongRunningGetCovers();
     	finished = 0;
-    	lrgi.execute();
+    	lrgc.execute();
 		while(finished != 1);
     	ScrollView scroll = (ScrollView) mViewPager.getChildAt(0);
 		LinearLayout finallayout = new LinearLayout(context);
@@ -174,10 +199,6 @@ public class Search extends FragmentActivity {
     		album.setText(resSearchSongs.get(i).getGroup());
     		album.setTextSize(18);
     		vertical1.addView(album);
-    		final TextView songid = new TextView(context);
-    		songid.setText(Integer.toString(i));
-    		songid.setTextSize(0);
-    		vertical1.addView(songid);
     		
     		layout1.setOrientation(0);
     		final ImageView image = new ImageView(context);
@@ -200,18 +221,9 @@ public class Search extends FragmentActivity {
     		layout1.addView(vertical1);
     		final int id = i;
     		
-    		layout1.setOnLongClickListener(new OnLongClickListener() {
-    			public boolean onLongClick(View v){
-					return false;
-    			}
-    			
-    		});
-    		
     		layout1.setOnClickListener(new OnClickListener() { 
                 public void onClick(View v){
-                	LinearLayout vert = (LinearLayout) layout1.getChildAt(1);
-                	int index = Integer.parseInt(((TextView) vert.getChildAt(2)).getText().toString());
-                	crearMenu(index);
+                	crearMenu(id);
     			}
     		});
     		
@@ -233,7 +245,69 @@ public class Search extends FragmentActivity {
     }
     
     private void searchArtists(){
-    	
+    	resSearchArtists = new Vector<Artist>();
+    	LongRunningGetSearchArtist lrgsa = new LongRunningGetSearchArtist();
+		finished = 0;
+		lrgsa.execute();
+		while(finished != 1);
+		numArtists = resSearchArtists.size();
+		LongRunningGetImages lrgi = new LongRunningGetImages();
+    	finished = 0;
+    	lrgi.execute();
+		while(finished != 1);
+    	ScrollView scroll = (ScrollView) mViewPager.getChildAt(1);
+		LinearLayout finallayout = new LinearLayout(context);
+    	finallayout.setOrientation(1);
+    	int i;
+    	for(i = 0; i < numArtists; ++i){
+    		System.out.println("Bucle "+i);
+    		final LinearLayout layout1 = new LinearLayout(context);
+    		LinearLayout vertical1 = new LinearLayout(context);
+    		vertical1.setOrientation(1);
+    		final TextView artist = new TextView(context);
+    		artist.setText(resSearchArtists.get(i).getName());
+    		artist.setTextSize(30);
+    		vertical1.addView(artist);
+    		
+    		layout1.setOrientation(0);
+    		final ImageView image = new ImageView(context);
+    		if(resSearchArtists.get(i).getImageDrawablePointer() == -1) image.setImageDrawable(getResources().getDrawable(R.drawable.nonfound));
+    		else {
+
+                Drawable d = (Drawable) drawable.get(resSearchArtists.get(i).getImageDrawablePointer());
+                Bitmap bd = ((BitmapDrawable) d).getBitmap();
+                Display display = getWindowManager().getDefaultDisplay();
+                Point size = new Point();
+                display.getSize(size);
+                double resize = 0.25;
+                int y = (int) (size.y*resize);
+                int x = (int) (size.x*resize); 
+                if(x > y) x= y;
+                Bitmap bitmapOrig = Bitmap.createScaledBitmap(bd, x, x, false);
+    			image.setImageDrawable(new BitmapDrawable(bitmapOrig));
+    		}
+    		layout1.addView(image);
+    		layout1.addView(vertical1);
+    		final int id = i;
+    		
+    		layout1.setOnClickListener(new OnClickListener() { 
+                public void onClick(View v){
+                	//crearMenuArtist(id);
+                	System.out.println("clicado artist "+id);
+    			}
+    		});
+    		
+    		finallayout.addView(layout1);
+    	}
+    	scroll.removeAllViews();
+        scroll.addView(finallayout);
+        mViewPager.removeViewAt(1);
+        mViewPager.addView(scroll, 1);
+        ScrollView scrollEmpty = new ScrollView(context);
+        mViewPager.removeViewAt(0);
+        mViewPager.addView(scrollEmpty, 0);
+        //mViewPager.removeViewAt(2);
+        //mViewPager.addView(scrollEmpty, 2);
     }
     
     public void searchClick(View view){    	
@@ -252,7 +326,7 @@ public class Search extends FragmentActivity {
     private void crearMenu(final int index){
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(resSearchSongs.get(index).getTitle());
-    	CharSequence[] item = {"Play"," Add to playing now", "Add to favorites", "Add to a Playlist", "Share"};
+    	CharSequence[] item = {"Play","Add to playing now", "Add to favorites", "Add to a Playlist", "Share"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			
 			public void onClick(DialogInterface dialog, int which) {
@@ -323,6 +397,7 @@ public class Search extends FragmentActivity {
             return 3;
         }
         
+        
         @Override  
         public void finishUpdate(View arg0) {  
               
@@ -334,18 +409,20 @@ public class Search extends FragmentActivity {
         }  
       
         @Override  
-        public void restoreState(Parcelable arg0, ClassLoader arg1) {  
+        public void restoreState(Parcelable arg0, ClassLoader arg1) {
+
               
         }  
       
         @Override  
-        public Parcelable saveState() {  
+        public Parcelable saveState() { 
             return null;  
         }  
       
         @Override  
         public void startUpdate(View arg0) {   
-              
+
+        	
         }
         
         @Override
@@ -354,6 +431,8 @@ public class Search extends FragmentActivity {
             ((ViewPager) collection).addView(scroll,position);
             return scroll;
         }
+        
+
 
         @Override
         public CharSequence getPageTitle(int position) {
@@ -367,12 +446,12 @@ public class Search extends FragmentActivity {
     	
     }
     
-    public class LongRunningGetImages extends AsyncTask <Void, Void, String> {
+    public class LongRunningGetCovers extends AsyncTask <Void, Void, String> {
 
     	ProgressDialog pd;
 
     	
-    	public LongRunningGetImages(){
+    	public LongRunningGetCovers(){
 
     	}
     	
@@ -448,7 +527,88 @@ public class Search extends FragmentActivity {
 
     }
     
-    public class LongRunningGetSearch extends AsyncTask <Void, Void, String> {
+    public class LongRunningGetImages extends AsyncTask <Void, Void, String> {
+
+    	ProgressDialog pd;
+
+    	
+    	public LongRunningGetImages(){
+
+    	}
+    	
+        public Object fetch(String address) throws MalformedURLException, IOException{
+			URL url = new URL(address);
+			Object content = url.getContent();
+			return content;
+        	
+        }
+        
+
+        private Drawable ImageOperations(Context ctx, String url) {
+            try {
+                InputStream is = (InputStream) this.fetch(url);
+                Drawable d = Drawable.createFromStream(is, "src");
+                return d;
+            } catch (MalformedURLException e) {
+                return null;
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        
+       @Override
+       protected void onPreExecute(){
+    	    pd = new ProgressDialog(context);
+          	pd.setMessage("Searching...");
+          	pd.setCancelable(false);
+          	pd.setIndeterminate(true);
+          	pd.show();
+       }
+       
+       @Override 
+       protected void onPostExecute(final String s){
+    	   pd.dismiss();
+       }
+    	@Override
+		protected String doInBackground(Void... params) {
+			try {
+				String currentUrl;
+	        	for(int i = 0; i < numArtists; ++i){
+	        		currentUrl = resSearchArtists.get(i).getCover();
+					if(!urlDrawables.contains(currentUrl)){
+						urlDrawables.add(currentUrl);
+						drawable.add(ImageOperations(context,currentUrl));
+						Artist aux = resSearchArtists.get(i);
+						resSearchArtists.remove(i);
+						aux.setImageDrawablePointer(drawable.size()-1);
+						resSearchArtists.add(i, aux);
+					}
+					else{
+						int trob = 0;
+						int a = 0;
+						while(trob == 0){
+							if(urlDrawables.get(a).equals(currentUrl)){
+								Artist aux = resSearchArtists.get(i);
+								resSearchArtists.remove(i);
+								aux.setImageDrawablePointer(a);
+								resSearchArtists.add(i, aux);
+								trob = 1;
+							}
+							else a++;
+						}
+					}
+	        	}
+	        	finished = 1;
+			} catch (Exception ex) {
+				return null;
+			}
+           
+			return null;
+		}
+
+    }
+    
+    public class LongRunningGetSearchSongs extends AsyncTask <Void, Void, String> {
 
     	
 	    ProgressDialog pd;
@@ -470,7 +630,7 @@ public class Search extends FragmentActivity {
     		TextView search = (TextView)findViewById(R.id.searchText);
     		HttpClient httpClient = new DefaultHttpClient();
     		String requestToSearch = search.getText().toString();
-    		if(lastSearch.equals(requestToSearch)) offse+=10;
+    		if(lastSearch.equals(requestToSearch)) offse+=15;
     		else offse = 0;
     		lastSearch = requestToSearch;
     		HttpContext localContext = new BasicHttpContext();
@@ -552,9 +712,109 @@ public class Search extends FragmentActivity {
     	TextView srch = (TextView) findViewById(R.id.searchText);
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);  
         imm.hideSoftInputFromWindow(srch.getWindowToken(), 0);  
-    } 
+    }
+    
+    
+public class LongRunningGetSearchArtist extends AsyncTask <Void, Void, String> {
+
+    	
+	    ProgressDialog pd;
+	    
+	    @Override
+	    protected void onPreExecute(){
+
+		    pd = new ProgressDialog(context);
+
+	       	pd.setMessage("Searching...");
+	       	pd.setCancelable(false);
+	       	pd.setIndeterminate(true);
+	       	pd.show();
+        }
+	    
+	    
+    	@Override
+    	protected String doInBackground(Void... params) {
+    		TextView search = (TextView)findViewById(R.id.searchText);
+    		HttpClient httpClient = new DefaultHttpClient();
+    		String requestToSearch = search.getText().toString();
+    		if(lastSearch.equals(requestToSearch)) offse+=15;
+    		else offse = 0;
+    		lastSearch = requestToSearch;
+    		HttpContext localContext = new BasicHttpContext();
+    		String t = "http://polar-thicket-1771.herokuapp.com/artists/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
+    		HttpGet httpget = new HttpGet(t);
+    		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+    		try {
+    			HttpResponse response = httpClient.execute(httpget, localContext);
+    			StatusLine stl = response.getStatusLine();
+    			HttpEntity ent = response.getEntity();
+    			String res = String.valueOf(stl.getStatusCode());
+    			if(res.equals("200") || res.equals("206")){
+    				String src = EntityUtils.toString(ent);
+    				JSONArray result = new JSONArray(src);
+    				for (int i = 0; i < result.length(); ++i) {
+    				    JSONObject rec = result.getJSONObject(i);
+    				    int ID = Integer.parseInt(rec.getString("artist_id"));
+    					String name = rec.getString("artist_name");
+    					String cover = getString(R.string.resources_url)+rec.getString("artist_img_url");
+    					Artist a = new Artist(ID, name, cover);
+    		    		resSearchArtists.add(a);
+    				}
+    			}
+				finished = 1;
+    			return String.valueOf(stl.getStatusCode());
+    		} catch (Exception e) {
+    			System.out.println("Error"+e.getLocalizedMessage());
+    			return e.getLocalizedMessage();
+    		}
+    	}
+    	
+    	
+		protected void onPostExecute(String results) {
+    		if(results.equals("200") || results.equals("206")){
+			}
+    		else if(results.equals("400")){
+				crearAlert("Error", "Wrong parameters");
+			}
+			else if(results.equals("416")){
+				if(offse == 0) crearAlert("Error", "No artists match with the search");
+				else {
+					crearAlert("Error", "No more artists avaliable");
+					Button b = (Button) findViewById(R.id.buttonSearch);
+					b.setText("Search");
+				}
+				lastSearch = "sdkfjhnsdñflksd";
+				offse = 0;
+				
+			}
+			else{
+				crearAlert("Connection error", "No connection with the server");
+				lastSearch = "sdkfjhnsdñflksd";
+				offse = 0;
+			}
+			pd.dismiss();
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+		private void crearAlert(String t, String s){
+    		AlertDialog alert = new AlertDialog.Builder(Search.this).create();
+			alert.setTitle(t);
+			alert.setMessage(s);
+			alert.setButton("Close",new DialogInterface.OnClickListener() {
+				
+				public void onClick(final DialogInterface dialog, final int which) {
+				}
+			});
+			alert.show();
+    	}
+    }
+    
+    
+  
 
 }
+
+
 
 
 
