@@ -11,6 +11,8 @@ public class Album {
 	private String nameArt;
 	private Vector<Song> songs;
 	private int coverDrawablePointer;
+	private String genre;
+	private int year;
 	
 	public Album(){
 		coverDrawablePointer = -1;
@@ -80,6 +82,22 @@ public class Album {
 
 	public void setCover(String cover) {
 		this.cover = cover;
+	}
+
+	public String getGenre() {
+		return genre;
+	}
+
+	public void setGenre(String genre) {
+		this.genre = genre;
+	}
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
 	}
 	
 

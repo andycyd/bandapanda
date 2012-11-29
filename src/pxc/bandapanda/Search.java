@@ -294,6 +294,8 @@ public class Search extends FragmentActivity {
                 public void onClick(View v){
                 	//crearMenuArtist(id);
                 	System.out.println("clicado album "+id);
+                	Intent i = new Intent(context, AlbumView.class);
+                	startActivity(i);
     			}
     		});
     		
@@ -301,13 +303,11 @@ public class Search extends FragmentActivity {
     	}
     	scroll.removeAllViews();
         scroll.addView(finallayout);
-        scroll = in
-        mViewPager.removeViewAt(2);
-        mViewPager.removeAllViews();
-        mViewPager.addView(scroll, 2);
+        mViewPager.removeViewAt(1);
+        mViewPager.addView(scroll, 1);
         ScrollView scrollEmpty = new ScrollView(context);
-        //mViewPager.removeViewAt(2);
-        //mViewPager.addView(scrollEmpty, 2);
+        mViewPager.removeViewAt(0);
+        mViewPager.addView(scrollEmpty, 0);
     }
     
     private void searchArtists(){
@@ -494,6 +494,7 @@ public class Search extends FragmentActivity {
         @Override
         public synchronized Object instantiateItem(View collection,int position){
         	ScrollView scroll = new ScrollView(context);
+        	System.out.println(position);
             ((ViewPager) collection).addView(scroll,position);
             return scroll;
         }

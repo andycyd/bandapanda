@@ -15,6 +15,7 @@ public class Song {
 	private String cover;
 	private String url;
 	private int coverDrawablePointer;
+	private int track;
 	
 	
 	
@@ -27,6 +28,7 @@ public class Song {
 		group = gr;
 		cover = cov;
 		url = u;
+		track = -1;
 		setCoverDrawablePointer(covP);
 	}
 
@@ -87,7 +89,14 @@ public class Song {
 	public void setCover(String cover) {
 		this.cover = cover;
 	}
+	
+	public void setTrack(int t){
+		track = t;
+	}
 
+	public int getTrack(){
+		return track;
+	}
 
 
 	public String getUrl() {

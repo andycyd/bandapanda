@@ -221,7 +221,7 @@ public class MenuPlaylist extends FragmentActivity {
     	protected String doInBackground(Void... params) {
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/users/"+User.getInstance().getId()+"playlists/");
+    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/users/"+User.getInstance().getId()+"/playlists/");
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
