@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Vector;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -17,8 +16,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import pxc.bandapanda.MenuPlaylist.LongRunningGetImages;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -34,59 +31,60 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class AlbumView extends FragmentActivity {
-	int IDAlbum;
-	Album albumInf;
+public class ArtistView extends FragmentActivity {
+	int IDArtist;
+	Artist artistInf;
 	Context context;
 	int finished;
-	Drawable cover;
+	Drawable image;
 	
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
-		IDAlbum = getIntent().getExtras().getInt("id");
-		albumInf = new Album();
+		IDArtist = getIntent().getExtras().getInt("id");
+		artistInf = new Artist();
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.view_album);
+        setContentView(R.layout.view_artist);
         context = this;
-        LongRunningGetAlbum lrga = new LongRunningGetAlbum();
+        LongRunningGetArtist lrga = new LongRunningGetArtist();
         finished = 0;
         lrga.execute();
         while(finished!=1);
-        ImageView iv = (ImageView) findViewById(R.id.albumCoverImage);
-        iv.setImageDrawable(cover);
+        ImageView iv = (ImageView) findViewById(R.id.artistImage);
+        iv.setImageDrawable(image);
         TextView name = new TextView(context);
-        TextView artist = new TextView(context);
-        TextView genre = new TextView(context);
+        TextView info = new TextView(context);
         TextView year = new TextView(context);
-        name.setText(albumInf.getName());
-        artist.setText(albumInf.getNameArt());
-        year.setText(String.valueOf(albumInf.getYear()));
-        genre.setText(albumInf.getGenre());
-        LinearLayout l = (LinearLayout) findViewById(R.id.layoutInfo);
+        name.setText(artistInf.getName());
+        year.setText(String.valueOf(artistInf.getYear()));
+        info.setText(artistInf.getInfo());
+        LinearLayout l = (LinearLayout) findViewById(R.id.layoutInfoArtist);
         l.addView(name);
-        l.addView(artist);
         l.addView(year);
-        l.addView(genre);
-        ListView lv = (ListView) findViewById(R.id.songsAlbumList);
-        String[] songs = new String[albumInf.getNumSongs()];        
-        for(int i = 0; i < albumInf.getNumSongs(); ++i){
-        	songs[i] = String.valueOf(albumInf.getSong(i).getTrack()) + " - " + albumInf.getSong(i).getTitle();
+        l.addView(info);
+        ListView lv = (ListView) findViewById(R.id.albumsArtistList);
+        String[] albums = new String[artistInf.getNumAlbums()];        
+        for(int i = 0; i < artistInf.getNumAlbums(); ++i){
+        	albums[i] = String.valueOf(artistInf.getAlbum(i).getYear())+" - "+artistInf.getAlbum(i).getName();
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-        		  android.R.layout.simple_list_item_1, android.R.id.text1, songs);
+        		  android.R.layout.simple_list_item_1, android.R.id.text1, albums);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new OnItemClickListener() {
 
        	 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-       		 	crearMenu(albumInf.getSong(position));
+       		Intent i = new Intent(context, AlbumView.class);
+        	Bundle b = new Bundle();
+        	b.putInt("id", artistInf.getAlbum(position).getID());
+        	i.putExtras(b);
+        	startActivity(i);
+       		 	//crearMenu(artistInf.getAlbum(position));
             }
         });
 	}
@@ -94,47 +92,25 @@ public class AlbumView extends FragmentActivity {
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_album, menu);
+        getMenuInflater().inflate(R.menu.menu_artist, menu);
         return true;
     }
 	
 	public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case R.id.menu_play_current_playlist_album:
+        case R.id.menu_play_current_playlist_artist:
         	Intent in = new Intent(context, MusicPlayer.class);
         	startActivity(in);
             return true;
-        case R.id.menu_play_all_songs_album:
-            CurrentPL current = CurrentPL.getInstance();
-			current.resetPlaylist();
-			if(albumInf.getNumSongs() == 0){
-				AlertDialog alert = new AlertDialog.Builder(context).create();
-				alert.setTitle("Can't play");
-				alert.setMessage("No songs to be played");
-				alert.setButton("Close",new DialogInterface.OnClickListener() {
-					
-					public void onClick(final DialogInterface dialog, final int which) {
-					}
-				});
-				alert.show();
-				return true;
-			}
-			for(int i = 0; i <albumInf.getNumSongs(); ++i){
-				albumInf.getSong(i).setDcover(cover);
-		    	current.addSong(albumInf.getSong(i));
-			}
-			Intent in2 = new Intent(context, MusicPlayer.class);
-        	startActivity(in2);
-        	return true;
         default:
             return super.onOptionsItemSelected(item);
         }
     }
 	
-	
-	 private void crearMenu(final Song s){
+	/*
+	 private void crearMenu(final Album s){
 	    	AlertDialog.Builder b = new AlertDialog.Builder(context);
-	    	b.setTitle(s.getTitle());
+	    	b.setTitle(s.getName());
 	    	CharSequence[] item = {"Play","Add to playing now", "Add to favorites", "Add to a Playlist", "Share"};
 	    	b.setItems(item, new DialogInterface.OnClickListener() {
 				
@@ -179,11 +155,11 @@ public class AlbumView extends FragmentActivity {
 			});
 	    	b.show();
 	    }
-	
+	*/
 	
 	
 
-    public class LongRunningGetAlbum extends AsyncTask <Void, Void, String> {
+    public class LongRunningGetArtist extends AsyncTask <Void, Void, String> {
 
     	
 	    ProgressDialog pd;
@@ -223,7 +199,7 @@ public class AlbumView extends FragmentActivity {
     	protected String doInBackground(Void... params) {
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		String t = "http://polar-thicket-1771.herokuapp.com/albums/"+IDAlbum+".json";
+    		String t = "http://polar-thicket-1771.herokuapp.com/artists/"+IDArtist+".json";
     		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
@@ -234,28 +210,25 @@ public class AlbumView extends FragmentActivity {
     			if(res.equals("200")){
     				String src = EntityUtils.toString(ent);
     				//System.out.println(src);
-    				// {album_title, cover_url, artist_id, artist_name, album_genre, album_year, album_songs: [song_id, song_track, song_title, audio_url]* }
+    				//{artist_name, artist_image, artist_info, artist_year, artist_albums: [album_id, album_title, album_cover]* }
     				JSONObject result = new JSONObject(src);
-    				albumInf.setName(result.getString("album_title"));
-    				albumInf.setCover(getString(R.string.resources_url)+result.getString("cover_url"));
-    				cover = ImageOperations(context, albumInf.getCover());
-    				albumInf.setNameArt(result.getString("artist_name"));
-    				albumInf.setIDart(Integer.parseInt(result.getString("artist_id")));
-    				albumInf.setGenre(result.getString("album_genre"));
-    				System.out.println("album year: "+result.getString("album_year"));
-    				albumInf.setYear(Integer.parseInt(result.getString("album_year")));
-    				JSONArray songs = result.getJSONArray("album_songs");
+
+					System.out.println("Hola sonia 3");
+    				artistInf.setName(result.getString("artist_name"));
+    				artistInf.setCover(getString(R.string.resources_url)+result.getString("artist_image"));
+    				artistInf.setInfo(result.getString("artist_info"));
+    				artistInf.setYear(Integer.parseInt(result.getString("artist_year")));
+    				image = ImageOperations(context, artistInf.getCover());
+    				JSONArray songs = result.getJSONArray("artist_albums");
     				for (int i = 0; i < songs.length(); ++i) {
+    					System.out.println("Hola sonia");
     				    JSONObject rec = songs.getJSONObject(i);
-    				    int ID = Integer.parseInt(rec.getString("song_id"));
-    				    System.out.println("Prueba 4");
-    					String title = rec.getString("song_title");
-    					int track = Integer.parseInt(rec.getString("song_track"));
-    					String url = getString(R.string.resources_url)+rec.getString("audio_url");
-    					Song s = new Song(ID, title, albumInf.getID(), albumInf.getName(), albumInf.getIDart(), albumInf.getNameArt(), albumInf.getCover(), -1,  url);
-    					System.out.println("Prueba 3");
-    					s.setTrack(track);
-    					albumInf.addSong(s);
+    				    int ID = Integer.parseInt(rec.getString("album_id"));
+    					String name = rec.getString("album_title");
+    					String url = getString(R.string.resources_url)+rec.getString("album_cover");
+    					Album s = new Album(ID, name, artistInf.getID(), artistInf.getName(), url);
+    					System.out.println("Hola sonia 2");
+    					artistInf.addAlbum(s);
     				}
     			}
 				finished = 1;
@@ -279,7 +252,7 @@ public class AlbumView extends FragmentActivity {
     	
     	@SuppressWarnings("deprecation")
 		private void crearAlert(String t, String s){
-    		AlertDialog alert = new AlertDialog.Builder(AlbumView.this).create();
+    		AlertDialog alert = new AlertDialog.Builder(ArtistView.this).create();
 			alert.setTitle(t);
 			alert.setMessage(s);
 			alert.setButton("Close",new DialogInterface.OnClickListener() {

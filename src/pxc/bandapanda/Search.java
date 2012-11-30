@@ -363,6 +363,11 @@ public class Search extends FragmentActivity {
                 public void onClick(View v){
                 	//crearMenuArtist(id);
                 	System.out.println("clicado artist "+id);
+                	Intent i = new Intent(context, ArtistView.class);
+                	Bundle b = new Bundle();
+                	b.putInt("id", resSearchArtists.get(id).getID());
+                	i.putExtras(b);
+                	startActivity(i);
     			}
     		});
     		

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/artistHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:id="@+id/artistImage"
+            android:layout_width="wrap_content"
+            android:layout_height="146dp"
+            android:src="@drawable/adele" />
+
+        <LinearLayout
+            android:id="@+id/layoutInfoArtist"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0.33"
+            android:orientation="vertical" >
+
+        </LinearLayout>
+    </LinearLayout>
+
+	<ListView
+	    android:id="@+id/albumsArtistList"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:divider="#242424"
+	    android:dividerHeight="1dp"
+	    android:listSelector="@drawable/list_selector" />
+    
+</LinearLayout>
