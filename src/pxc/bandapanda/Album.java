@@ -14,6 +14,7 @@ public class Album {
 	private String genre;
 	private int year;
 	
+	
 	public Album(){
 		coverDrawablePointer = -1;
 		ID = -1;
@@ -100,5 +101,8 @@ public class Album {
 		this.year = year;
 	}
 	
+	public int getNumSongs(){
+		return songs.size();
+	}
 
 }

@@ -39,10 +39,13 @@ public class BandaPanda extends FragmentActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.wellcome);
-        context = this;
-        
+
+		super.onCreate(savedInstanceState);
+    	if(User.getInstance().getId() != -1) goSearch();
+    	else{
+    		setContentView(R.layout.wellcome);
+    		context = this;
+    	}
     }
 
     

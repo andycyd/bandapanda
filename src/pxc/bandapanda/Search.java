@@ -295,6 +295,9 @@ public class Search extends FragmentActivity {
                 	//crearMenuArtist(id);
                 	System.out.println("clicado album "+id);
                 	Intent i = new Intent(context, AlbumView.class);
+                	Bundle b = new Bundle();
+                	b.putInt("id", resSearchAlbums.get(id).getID());
+                	i.putExtras(b);
                 	startActivity(i);
     			}
     		});

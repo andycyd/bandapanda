@@ -72,25 +72,16 @@ public class MenuPlaylist extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
         context = this;
-        for(int i = 0; i < 20; ++i){
-        	Playlist p = new Playlist("Hola "+i,i);
-            User.getInstance().addPlaylist(p);
-        }
         vectorPlaylists = User.getInstance().getPlaylists();
-        /* 
-         * 
-         * DESCOMENTAR ESTO PARA LA BUSQUEDA DE LAS PLAYLISTS!!!
-         * 
-         * 
-         * 
-        LongRunningGetImages lrgi = new LongRunningGetPlaylists();
-    	finished = 0;
-    	lrgi.execute();
-    	System.out.println("Acaba covers");
-		while(finished != 1); 
-		System.out.println("ponemos en su sitio");
-		
-		*/
+        if(vectorPlaylists.size() == 0){
+        	LongRunningGetPlaylists lrgi = new LongRunningGetPlaylists();
+        	finished = 0;
+        	lrgi.execute();
+        	System.out.println("Acaba covers");
+        	while(finished != 1); 
+        	System.out.println("ponemos en su sitio");
+        }
+
         refreshPlaylists();
         
     }
@@ -133,8 +124,10 @@ public class MenuPlaylist extends FragmentActivity {
     
     public void createPlaylist(String name){
     	// FALTA LLAMAR A CREAR PLAYLIST DE LA API
-    	Playlist p = new Playlist(name, 2);
-     	User.getInstance().addPlaylist(p);
+    	LongRunningPostPlaylist lp = new LongRunningPostPlaylist(name);
+    	finished = 0;
+    	lp.execute();
+    	while(finished != 1);
     }
   
     
@@ -158,10 +151,10 @@ public class MenuPlaylist extends FragmentActivity {
 				urlDrawables = new Vector<String>();
 				drawable = new Vector<Drawable>();
 				// DESCOMENTAR CUANDO TENGAMOS LA LLAMADA GET PLAYLIST
-			    /*LongRunningGetOnePlaylist lrgop = new LongRunningGetOnePlaylist(position);
+			    LongRunningGetOnePlaylist lrgop = new LongRunningGetOnePlaylist(position);
 			    finished = 0;
 			    lrgop.execute();
-				while(finished != 1);*/
+				while(finished != 1);
 				numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
 			    if(numSongs == 0){
 			    	AlertDialog alert = new AlertDialog.Builder(context).create();
@@ -221,15 +214,17 @@ public class MenuPlaylist extends FragmentActivity {
     	protected String doInBackground(Void... params) {
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/users/"+User.getInstance().getId()+"/playlists/");
+    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/users/"+User.getInstance().getId()+"/playlists.json?lim=100");
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
     			StatusLine stl = response.getStatusLine();
     			HttpEntity ent = response.getEntity();
     			String res = String.valueOf(stl.getStatusCode());
-    			if(res.equals("200")){
+    			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
+
+    				System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -250,26 +245,13 @@ public class MenuPlaylist extends FragmentActivity {
     	
     	@SuppressWarnings("deprecation")
 		protected void onPostExecute(String results) {
-    		if(results.equals("200")){
+    		if(results.equals("200") || results.equals("206")){
 				pd.dismiss();
-			}
-			else if(results.equals("401")){
-
-    			AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
-    			alert.setTitle("Login error");
-    			alert.setMessage("User/Password incorrect.");
-    			alert.setButton("Close",new DialogInterface.OnClickListener() {
-					
-					public void onClick(final DialogInterface dialog, final int which) {
-					}
-				});
-    			pd.dismiss();
-    			alert.show();
 			}
 			else{
 
     			AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
-    			alert.setTitle("Login error");
+    			alert.setTitle("Error");
     			alert.setMessage("No connection with the server");
     			alert.setButton("Close",new DialogInterface.OnClickListener() {
 					
@@ -310,7 +292,7 @@ public class MenuPlaylist extends FragmentActivity {
     	protected String doInBackground(Void... params) {
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/playlists/"+idPlaylist);
+    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/playlists/"+idPlaylist+".json");
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
@@ -464,5 +446,85 @@ public class MenuPlaylist extends FragmentActivity {
 		}
 
     }
+    
+    public class LongRunningPostPlaylist extends AsyncTask <Void, Void, String> {
+
+    	
+	    ProgressDialog pd;
+	    String playlist;
+	    
+	    public LongRunningPostPlaylist(String t){
+	    	playlist = t;
+	    }
+	    
+	    @Override
+	    protected void onPreExecute(){
+
+		    pd = new ProgressDialog(context);
+
+	       	pd.setMessage("Logging in...");
+	       	pd.setCancelable(false);
+	       	pd.setIndeterminate(true);
+	       	pd.show();
+        }
+	    
+	    
+    	@Override
+    	protected String doInBackground(Void... params) {
+    		HttpClient httpClient = new DefaultHttpClient();
+    		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+    		nameValuePairs.add(new BasicNameValuePair("name",playlist));
+    		nameValuePairs.add(new BasicNameValuePair("songs",""));
+    		HttpContext localContext = new BasicHttpContext();
+    		HttpPost httppost = new HttpPost("http://polar-thicket-1771.herokuapp.com/users/"+User.getInstance().getId()+"/playlists.json");
+    		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+    		try {
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}
+    		try {
+    			HttpResponse response = httpClient.execute(httppost, localContext);
+    			StatusLine stl = response.getStatusLine();
+    			HttpEntity ent = response.getEntity();
+    			String res = String.valueOf(stl.getStatusCode());
+    			System.out.println(res);
+    			if(res.equals("201") || res.equals("500")){
+    				String src = EntityUtils.toString(ent);
+    				System.out.println(src);
+    				JSONObject result = new JSONObject(src);
+        			Playlist p = new Playlist(playlist, Integer.parseInt(result.getString("id")));
+        	     	User.getInstance().addPlaylist(p);
+        	     	
+    			}
+    			finished = 1;
+    			return String.valueOf(stl.getStatusCode());
+    		} catch (Exception e) {
+    			System.out.println("Error"+e.getLocalizedMessage());
+    			return e.getLocalizedMessage();
+    		}
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
+    		if(results.equals("201") || results.equals("500")){
+				
+				pd.dismiss();
+			}
+			else{
+
+    			AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
+    			alert.setTitle("Connection Error");
+    			alert.setMessage("No connection with the server");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			pd.dismiss();
+    			alert.show();
+			}
+    	}
+    }    
     
 }

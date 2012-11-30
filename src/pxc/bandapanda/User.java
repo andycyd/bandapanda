@@ -42,6 +42,7 @@ public class User {
 		}
 		private User(){
 			playlists = new Vector<Playlist>();
+			ID = -1;
 		}
 		
 		public static User getInstance(){

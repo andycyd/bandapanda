@@ -5,4 +5,10 @@
         android:showAsAction="never" >
         <menu></menu>
     </item>
+    <item android:id="@+id/menu_play_current_playlist_album"
+        android:title="Play current playlist"
+        android:orderInCategory="100"
+        android:showAsAction="never" >
+        <menu></menu>
+    </item>
 </menu>
