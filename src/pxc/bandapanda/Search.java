@@ -429,9 +429,11 @@ public class Search extends FragmentActivity {
 			    	}
 			    	b1.setItems(item, new DialogInterface.OnClickListener() {
 						
-						public void onClick(DialogInterface dialog, int which) {
-							// HAY QUE MODIFICAR PARA AÑADIRLA EN LA API, NO EN LOCAL
-							User.getInstance().addSongToPlaylist(which, resSearchSongs.get(index));
+						public void onClick(DialogInterface dialog, int which2) {
+							finished = 0;
+							LongRunningPostInsertSongPlaylist lrpisp = new LongRunningPostInsertSongPlaylist(User.getInstance().getIdPlaylist(which2), resSearchSongs.get(index).getID());
+							lrpisp.execute();
+							while(finished != 1);
 						}
 					});
 			    	b1.show();
@@ -1047,6 +1049,7 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 		pd.dismiss();
 	}
 	
+	
 	@SuppressWarnings("deprecation")
 	private void crearAlert(String t, String s){
 		AlertDialog alert = new AlertDialog.Builder(Search.this).create();
@@ -1061,7 +1064,68 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 	}
 }
     
+public class LongRunningPostInsertSongPlaylist extends AsyncTask <Void, Void, String> {
+
+	
+    int playlist;
+    int song;
     
+    public LongRunningPostInsertSongPlaylist(int pl, int s){
+    	playlist = pl;
+    	song = s;
+    }
+    
+    @Override
+    protected void onPreExecute(){
+
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		HttpClient httpClient = new DefaultHttpClient();
+		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+		nameValuePairs.add(new BasicNameValuePair("song_id",Integer.toString(song)));
+		HttpContext localContext = new BasicHttpContext();
+		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+".json");
+		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			HttpResponse response = httpClient.execute(httppost, localContext);
+			StatusLine stl = response.getStatusLine();
+			String res = String.valueOf(stl.getStatusCode());
+			System.out.println(res);
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	protected void onPostExecute(String results) {
+		if(results.equals("200")){
+			
+		}
+		else{
+
+			AlertDialog alert = new AlertDialog.Builder(Search.this).create();
+			alert.setTitle("Connection Error");
+			alert.setMessage("No connection with the server");
+			alert.setButton("Close",new DialogInterface.OnClickListener() {
+				
+				public void onClick(final DialogInterface dialog, final int which) {
+				}
+			});
+			alert.show();
+		}
+	}
+} 
   
 
 }

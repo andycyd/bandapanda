@@ -8,5 +8,6 @@
     <string name="menu_settings">Settings</string>
     <string name="title_activity_search">Search</string>
     <string name="resources_url">http://bandapanda.comlu.com</string>
+    <string name="api_url">http://polar-thicket-1771.herokuapp.com</string>
 
 </resources>

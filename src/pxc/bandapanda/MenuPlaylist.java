@@ -489,7 +489,7 @@ public class MenuPlaylist extends FragmentActivity {
     			HttpEntity ent = response.getEntity();
     			String res = String.valueOf(stl.getStatusCode());
     			System.out.println(res);
-    			if(res.equals("201") || res.equals("500")){
+    			if(res.equals("201")){
     				String src = EntityUtils.toString(ent);
     				System.out.println(src);
     				JSONObject result = new JSONObject(src);
