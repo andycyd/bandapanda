@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import pxc.bandapanda.Search.LongRunningGetImages;
+import pxc.bandapanda.Search.LongRunningPostInsertSongPlaylist;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -123,7 +124,6 @@ public class MenuPlaylist extends FragmentActivity {
     }
     
     public void createPlaylist(String name){
-    	// FALTA LLAMAR A CREAR PLAYLIST DE LA API
     	LongRunningPostPlaylist lp = new LongRunningPostPlaylist(name);
     	finished = 0;
     	lp.execute();
@@ -142,44 +142,9 @@ public class MenuPlaylist extends FragmentActivity {
         		  android.R.layout.simple_list_item_1, android.R.id.text1, playlists);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new OnItemClickListener() {
-
-        	 @SuppressWarnings("deprecation")
 			public void onItemClick(AdapterView<?> parent, View view,
                      int position, long id) {
-        		CurrentPL current = CurrentPL.getInstance();
-				current.resetPlaylist();
-				urlDrawables = new Vector<String>();
-				drawable = new Vector<Drawable>();
-				// DESCOMENTAR CUANDO TENGAMOS LA LLAMADA GET PLAYLIST
-			    LongRunningGetOnePlaylist lrgop = new LongRunningGetOnePlaylist(position);
-			    finished = 0;
-			    lrgop.execute();
-				while(finished != 1);
-				numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
-			    if(numSongs == 0){
-			    	AlertDialog alert = new AlertDialog.Builder(context).create();
-					alert.setTitle("Can't play");
-					alert.setMessage("No songs for this playlist");
-					alert.setButton("Close",new DialogInterface.OnClickListener() {
-						
-						public void onClick(final DialogInterface dialog, final int which) {
-						}
-					});
-					alert.show();
-			    	return;
-			    }
-			    LongRunningGetImages lrgi = new LongRunningGetImages(position);
-		    	finished = 0;
-		    	lrgi.execute();
-				while(finished != 1);
-			    for(int i = 0; i < numSongs; ++i){
-			    	User.getInstance().getPlaylists().get(position).getSong(i).setDcover((Drawable) drawable.get(User.getInstance().getPlaylists().get(position).getSong(i).getCoverDrawablePointer()));
-			    	current.addSong(User.getInstance().getPlaylists().get(position).getSong(i));
-			    }
-				Intent i = new Intent(context, MusicPlayer.class);
-             	startActivity(i);
-        		 
-                 
+        		 crearMenu(position);     		 
              }
          });
     }
@@ -189,6 +154,80 @@ public class MenuPlaylist extends FragmentActivity {
     public void searchSongs(View view){
     	Intent i = new Intent(this, Search.class );
     	startActivity(i);       
+    }
+    
+    
+    private void crearMenu(final int position){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(User.getInstance().getPlaylists().get(position).getName());
+    	CharSequence[] item = {"Play","Deletle","Watch songs"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			@SuppressWarnings("deprecation")
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+					CurrentPL current = CurrentPL.getInstance();
+					current.resetPlaylist();
+					urlDrawables = new Vector<String>();
+					drawable = new Vector<Drawable>();
+					numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+					if(numSongs == 0){
+					    LongRunningGetOnePlaylist lrgop = new LongRunningGetOnePlaylist(position);
+					    finished = 0;
+					    lrgop.execute();
+						while(finished != 1);
+					}
+					numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+				    if(numSongs == 0){
+				    	AlertDialog alert = new AlertDialog.Builder(context).create();
+						alert.setTitle("Can't play");
+						alert.setMessage("No songs for this playlist");
+						alert.setButton("Close",new DialogInterface.OnClickListener() {
+							public void onClick(final DialogInterface dialog, final int which) {
+							}
+						});
+						alert.show();
+				    	return;
+				    }
+				    LongRunningGetImages lrgi = new LongRunningGetImages(position);
+			    	finished = 0;
+			    	lrgi.execute();
+					while(finished != 1);
+					numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+				    for(int i = 0; i < numSongs; ++i){
+				    	User.getInstance().getPlaylists().get(position).getSong(i).setDcover((Drawable) drawable.get(User.getInstance().getPlaylists().get(position).getSong(i).getCoverDrawablePointer()));
+				    	current.addSong(User.getInstance().getPlaylists().get(position).getSong(i));
+				    }
+					Intent i = new Intent(context, MusicPlayer.class);
+	             	startActivity(i);
+				}
+				if(which == 1){
+
+				}
+				if(which == 2){
+					urlDrawables = new Vector<String>();
+					drawable = new Vector<Drawable>();
+					numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+					LongRunningGetOnePlaylist lrgop = new LongRunningGetOnePlaylist(position);
+					finished = 0;
+					lrgop.execute();
+					while(finished != 1);
+					numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+				    LongRunningGetImages lrgi = new LongRunningGetImages(position);
+			    	finished = 0;
+			    	lrgi.execute();
+					while(finished != 1);
+				    for(int i = 0; i < numSongs; ++i){
+				    	User.getInstance().getPlaylists().get(position).getSong(i).setDcover((Drawable) drawable.get(User.getInstance().getPlaylists().get(position).getSong(i).getCoverDrawablePointer()));
+				    }
+					Intent i = new Intent(context, PlaylistView.class);
+					Bundle b = new Bundle();
+                	b.putInt("number", position);
+                	i.putExtras(b);
+	             	startActivity(i);
+				}
+			}
+		});
+    	b.show();
     }
     
     
@@ -290,13 +329,15 @@ public class MenuPlaylist extends FragmentActivity {
 	    
     	@Override
     	protected String doInBackground(Void... params) {
+    		User.getInstance().getPlaylists().get(position).resetPlaylist();
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/playlists/"+idPlaylist+".json");
+    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/playlists/"+idPlaylist+".json?lim=200");
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
     			StatusLine stl = response.getStatusLine();
+    			int res = stl.getStatusCode();
     			// OJO! quizas falta comprovar que response status sea 200
     			/*
     			 * 
@@ -364,7 +405,6 @@ public class MenuPlaylist extends FragmentActivity {
     	}
     }
     
-
     public class LongRunningGetImages extends AsyncTask <Void, Void, String> {
 
     	ProgressDialog pd;
@@ -436,6 +476,7 @@ public class MenuPlaylist extends FragmentActivity {
 							else a++;
 						}
 					}
+					//System.out.println(User.getInstance().getPlaylists().get(position).getSong(i).getCoverDrawablePointer());
 	        	}
 	        	finished = 1;
 			} catch (Exception ex) {
