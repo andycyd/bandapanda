@@ -128,7 +128,7 @@ public class PlaylistView extends FragmentActivity {
     	final Playlist pl = User.getInstance().getPlaylists().get(playlistNumber);
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(pl.getSong(index).getTitle());
-    	CharSequence[] item = {"Play","Add to playing now", "Add to favorites", "Add to a Playlist", "Share"};
+    	CharSequence[] item = {"Play","Add to playing now", "Add to favorites", "Add to a Playlist", "Share","Deletle from playlist"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == 0){

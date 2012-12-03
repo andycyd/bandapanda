@@ -160,7 +160,7 @@ public class MenuPlaylist extends FragmentActivity {
     private void crearMenu(final int position){
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(User.getInstance().getPlaylists().get(position).getName());
-    	CharSequence[] item = {"Play","Deletle","Watch songs"};
+    	CharSequence[] item = {"Play","Deletle","Watch songs","Change Name"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			@SuppressWarnings("deprecation")
 			public void onClick(DialogInterface dialog, int which) {
