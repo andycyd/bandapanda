@@ -1,6 +1,10 @@
 package pxc.bandapanda;
 
 import java.io.IOException;
+import websocket.*;
+import pusherclient.*;
+import pusherclient.Pusher.Channel;
+
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -31,6 +35,9 @@ import pxc.bandapanda.Search.LongRunningPostInsertSongPlaylist;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -72,7 +79,16 @@ public class MenuPlaylist extends FragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
+        //PusherConnection pc = new PusherConnection();
+
         context = this;
+        if(!User.getInstance().isConected()){
+	        User.getInstance().setCt(context);
+	        String ns = Context.NOTIFICATION_SERVICE;
+	        User.getInstance().setNm((NotificationManager) getSystemService(ns));
+	        User.getInstance().connectToPusher();
+        }
+        //pc.execute();
         vectorPlaylists = User.getInstance().getPlaylists();
         if(vectorPlaylists.size() == 0){
         	LongRunningGetPlaylists lrgi = new LongRunningGetPlaylists();
@@ -567,5 +583,79 @@ public class MenuPlaylist extends FragmentActivity {
 			}
     	}
     }    
+    
+/*public class PusherConnection extends AsyncTask <Void, Void, String> {
+
+    	
+	    
+	    public PusherConnection(){
+	    }
+	    
+	    @Override
+	    protected void onPreExecute(){
+
+        }
+	    
+	    
+    	@Override
+    	protected String doInBackground(Void... params) {
+    		final Pusher pusher = new Pusher("37cc28f59fd3d3e4f801");   
+            PusherListener eventListener = new PusherListener() {  
+                Channel channel;
+
+                public void onConnect(String socketId) {
+                    System.out.println("Pusher connected. Socket Id is: " + socketId);
+                    channel = pusher.subscribe("bandapanda_1");
+                    System.out.println("Subscribed to channel: " + channel);
+                    channel.send("client-test", new JSONObject());
+
+                    channel.bind("price-updated", new ChannelListener() {
+                        public void onMessage(String message) {
+                            System.out.println("Received bound channel message: " + message);
+                        }
+                    });
+                }
+
+                public void onMessage(String message) {
+                    System.out.println("Received message from Pusher: " + message);
+                    String ns = Context.NOTIFICATION_SERVICE;
+                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+                    int icon = R.drawable.ic_launcher;
+                    CharSequence tickerText = "Hello";
+                    long when = System.currentTimeMillis();
+                     
+                    Notification notification = new Notification(icon, tickerText, when);
+                    
+                    Context context = getApplicationContext();
+                    CharSequence contentTitle = "My notification";
+                    CharSequence contentText = "Hello World!";
+                    Intent notificationIntent = new Intent(context, Search.class);
+                    PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+                     
+                    notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+                    final int HELLO_ID = 1;
+                    
+                    mNotificationManager.notify(HELLO_ID, notification);
+                    
+                    
+                }
+
+                public void onDisconnect() {
+                    System.out.println("Pusher disconnected.");
+                }
+            };
+
+            pusher.setPusherListener(eventListener);
+            pusher.connect();  
+    		return "null";
+    	
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
+    		
+    	}
+    }    
+*/    
     
 }

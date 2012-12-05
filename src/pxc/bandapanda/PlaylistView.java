@@ -70,6 +70,8 @@ public class PlaylistView extends FragmentActivity {
         	Playlist current = CurrentPL.getInstance();
         	current = new Playlist();
         	current = User.getInstance().getPlaylists().get(playlistNumber);
+        	Intent in2 = new Intent(context, MusicPlayer.class);
+        	startActivity(in2);
             return true;
         default:
             return super.onOptionsItemSelected(item);

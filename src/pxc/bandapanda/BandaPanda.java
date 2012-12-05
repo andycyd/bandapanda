@@ -45,6 +45,7 @@ public class BandaPanda extends FragmentActivity {
     	else{
     		setContentView(R.layout.wellcome);
     		context = this;
+    		User.getInstance().setConected(false);
     	}
     }
 

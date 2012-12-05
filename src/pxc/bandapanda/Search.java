@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -109,6 +110,9 @@ public class Search extends FragmentActivity {
 				offse = 0;
 			}
 		});
+
+		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(1);
 		mViewPager.setOnPageChangeListener(new OnPageChangeListener(){
 			public void onPageScrollStateChanged(int arg0) {
 
