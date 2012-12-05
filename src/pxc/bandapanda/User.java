@@ -153,7 +153,7 @@ public class User {
 
 	                public void onConnect(String socketId) {
 	                    System.out.println("Pusher connected. Socket Id is: " + socketId);
-	                    channel = pusher.subscribe("bandapanda_1");
+	                    channel = pusher.subscribe("bandapanda_"+User.getInstance().getId());
 	                    System.out.println("Subscribed to channel: " + channel);
 	                    channel.send("client-test", new JSONObject());
 

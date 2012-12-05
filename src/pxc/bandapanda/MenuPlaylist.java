@@ -144,6 +144,7 @@ public class MenuPlaylist extends FragmentActivity {
     	finished = 0;
     	lp.execute();
     	while(finished != 1);
+    	refreshPlaylists();
     }
   
     
@@ -176,7 +177,7 @@ public class MenuPlaylist extends FragmentActivity {
     private void crearMenu(final int position){
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(User.getInstance().getPlaylists().get(position).getName());
-    	CharSequence[] item = {"Play","Deletle","Watch songs","Change Name"};
+    	CharSequence[] item = {"Play","Delete","Watch songs","Change Name", "Share"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			@SuppressWarnings("deprecation")
 			public void onClick(DialogInterface dialog, int which) {
@@ -241,6 +242,9 @@ public class MenuPlaylist extends FragmentActivity {
                 	i.putExtras(b);
 	             	startActivity(i);
 				}
+				if(which == 4){
+					
+				}
 			}
 		});
     	b.show();
@@ -269,7 +273,7 @@ public class MenuPlaylist extends FragmentActivity {
     	protected String doInBackground(Void... params) {
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/users/"+User.getInstance().getId()+"/playlists.json?lim=100");
+    		HttpGet httpget = new HttpGet(getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/playlists.json?lim=100");
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
@@ -348,7 +352,7 @@ public class MenuPlaylist extends FragmentActivity {
     		User.getInstance().getPlaylists().get(position).resetPlaylist();
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		HttpGet httpget = new HttpGet("http://polar-thicket-1771.herokuapp.com/playlists/"+idPlaylist+".json?lim=200");
+    		HttpGet httpget = new HttpGet(getString(R.string.api_url)+"/playlists/"+idPlaylist+".json?lim=200");
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
@@ -531,9 +535,11 @@ public class MenuPlaylist extends FragmentActivity {
     		HttpClient httpClient = new DefaultHttpClient();
     		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
     		nameValuePairs.add(new BasicNameValuePair("name",playlist));
-    		nameValuePairs.add(new BasicNameValuePair("songs",""));
+
+			JSONArray array = new JSONArray();
+    		nameValuePairs.add(new BasicNameValuePair("songs",array.toString()));
     		HttpContext localContext = new BasicHttpContext();
-    		HttpPost httppost = new HttpPost("http://polar-thicket-1771.herokuapp.com/users/"+User.getInstance().getId()+"/playlists.json");
+    		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/playlists.json");
     		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
 				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -546,7 +552,7 @@ public class MenuPlaylist extends FragmentActivity {
     			HttpEntity ent = response.getEntity();
     			String res = String.valueOf(stl.getStatusCode());
     			System.out.println(res);
-    			if(res.equals("201")){
+    			if(res.equals("201")  || res.equals("500")){
     				String src = EntityUtils.toString(ent);
     				System.out.println(src);
     				JSONObject result = new JSONObject(src);
@@ -583,79 +589,5 @@ public class MenuPlaylist extends FragmentActivity {
 			}
     	}
     }    
-    
-/*public class PusherConnection extends AsyncTask <Void, Void, String> {
-
-    	
-	    
-	    public PusherConnection(){
-	    }
-	    
-	    @Override
-	    protected void onPreExecute(){
-
-        }
-	    
-	    
-    	@Override
-    	protected String doInBackground(Void... params) {
-    		final Pusher pusher = new Pusher("37cc28f59fd3d3e4f801");   
-            PusherListener eventListener = new PusherListener() {  
-                Channel channel;
-
-                public void onConnect(String socketId) {
-                    System.out.println("Pusher connected. Socket Id is: " + socketId);
-                    channel = pusher.subscribe("bandapanda_1");
-                    System.out.println("Subscribed to channel: " + channel);
-                    channel.send("client-test", new JSONObject());
-
-                    channel.bind("price-updated", new ChannelListener() {
-                        public void onMessage(String message) {
-                            System.out.println("Received bound channel message: " + message);
-                        }
-                    });
-                }
-
-                public void onMessage(String message) {
-                    System.out.println("Received message from Pusher: " + message);
-                    String ns = Context.NOTIFICATION_SERVICE;
-                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
-                    int icon = R.drawable.ic_launcher;
-                    CharSequence tickerText = "Hello";
-                    long when = System.currentTimeMillis();
-                     
-                    Notification notification = new Notification(icon, tickerText, when);
-                    
-                    Context context = getApplicationContext();
-                    CharSequence contentTitle = "My notification";
-                    CharSequence contentText = "Hello World!";
-                    Intent notificationIntent = new Intent(context, Search.class);
-                    PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-                     
-                    notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-                    final int HELLO_ID = 1;
-                    
-                    mNotificationManager.notify(HELLO_ID, notification);
-                    
-                    
-                }
-
-                public void onDisconnect() {
-                    System.out.println("Pusher disconnected.");
-                }
-            };
-
-            pusher.setPusherListener(eventListener);
-            pusher.connect();  
-    		return "null";
-    	
-    	}
-    	
-    	@SuppressWarnings("deprecation")
-		protected void onPostExecute(String results) {
-    		
-    	}
-    }    
-*/    
     
 }

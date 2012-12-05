@@ -223,7 +223,7 @@ public class AlbumView extends FragmentActivity {
     	protected String doInBackground(Void... params) {
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
-    		String t = "http://polar-thicket-1771.herokuapp.com/albums/"+IDAlbum+".json";
+    		String t = getString(R.string.api_url)+"/albums/"+IDAlbum+".json";
     		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {

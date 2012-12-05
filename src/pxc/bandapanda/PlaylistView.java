@@ -10,6 +10,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -67,9 +68,12 @@ public class PlaylistView extends FragmentActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.menu_play_watching_playlist:
-        	Playlist current = CurrentPL.getInstance();
-        	current = new Playlist();
-        	current = User.getInstance().getPlaylists().get(playlistNumber);
+        	Playlist current = User.getInstance().getPlaylists().get(playlistNumber);
+            
+        	CurrentPL.getInstance().resetPlaylist();
+        	for(int i = 0 ; i < current.getNumSongs(); ++i){
+        		CurrentPL.getInstance().addSong((current.getSong(i)));
+        	}
         	Intent in2 = new Intent(context, MusicPlayer.class);
         	startActivity(in2);
             return true;
@@ -166,7 +170,23 @@ public class PlaylistView extends FragmentActivity {
 			    	b1.show();
 				}
 				if(which == 4){
-					
+					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
+			    	b1.setTitle(pl.getSong(index).getTitle());
+			    	CharSequence[] item = new CharSequence[User.getInstance().getNumberPlaylists()];
+			    	for(int i = 0; i < User.getInstance().getNumberPlaylists(); ++i){
+			    		item[i]= User.getInstance().getNamePlaylist(i);
+			    	}
+			    	b1.setItems(item, new DialogInterface.OnClickListener() {
+						
+						public void onClick(DialogInterface dialog, int which2) {
+							finished = 0;
+							LongRunningDeleteSongPlaylist ld = new LongRunningDeleteSongPlaylist(User.getInstance().getIdPlaylist(which2), pl.getSong(index).getID());
+							ld.execute();
+							while(finished != 1);
+							fillPlaylist();
+						}
+					});
+			    	b1.show();    	
 				}
 				
 			}
@@ -208,6 +228,63 @@ public class PlaylistView extends FragmentActivity {
     		}
     		try {
     			HttpResponse response = httpClient.execute(httppost, localContext);
+    			StatusLine stl = response.getStatusLine();
+    			String res = String.valueOf(stl.getStatusCode());
+    			System.out.println(res);
+    			finished = 1;
+    			return String.valueOf(stl.getStatusCode());
+    		} catch (Exception e) {
+    			System.out.println("Error"+e.getLocalizedMessage());
+    			return e.getLocalizedMessage();
+    		}
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+    	protected void onPostExecute(String results) {
+    		if(results.equals("200")){
+    			
+    		}
+    		else{
+
+    			AlertDialog alert = new AlertDialog.Builder(PlaylistView.this).create();
+    			alert.setTitle("Connection Error");
+    			alert.setMessage("No connection with the server");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+    				
+    				public void onClick(final DialogInterface dialog, final int which) {
+    				}
+    			});
+    			alert.show();
+    		}
+    	}
+    } 
+    
+public class LongRunningDeleteSongPlaylist extends AsyncTask <Void, Void, String> {
+
+    	
+        int playlist;
+        int song;
+        
+        public LongRunningDeleteSongPlaylist(int pl, int s){
+        	playlist = pl;
+        	song = s;
+        }
+        
+        @Override
+        protected void onPreExecute(){
+
+        }
+        
+        
+    	@Override
+    	protected String doInBackground(Void... params) {
+    		HttpClient httpClient = new DefaultHttpClient();
+    		HttpContext localContext = new BasicHttpContext();
+    		
+    		HttpDelete httpdelete = new HttpDelete(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+"/"+Integer.toString(song));
+    		httpdelete.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+    		try {
+    			HttpResponse response = httpClient.execute(httpdelete, localContext);
     			StatusLine stl = response.getStatusLine();
     			String res = String.valueOf(stl.getStatusCode());
     			System.out.println(res);

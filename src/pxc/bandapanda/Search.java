@@ -796,7 +796,7 @@ public class Search extends FragmentActivity {
     		else offse = 0;
     		lastSearch = requestToSearch;
     		HttpContext localContext = new BasicHttpContext();
-    		String t = "http://polar-thicket-1771.herokuapp.com/songs/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
+    		String t = getString(R.string.api_url)+"/songs/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
     		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
@@ -903,7 +903,7 @@ public class LongRunningGetSearchArtist extends AsyncTask <Void, Void, String> {
     		else offse = 0;
     		lastSearch = requestToSearch;
     		HttpContext localContext = new BasicHttpContext();
-    		String t = "http://polar-thicket-1771.herokuapp.com/artists/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
+    		String t = getString(R.string.api_url)+"/artists/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
     		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
@@ -997,7 +997,7 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 		else offse = 0;
 		lastSearch = requestToSearch;
 		HttpContext localContext = new BasicHttpContext();
-		String t = "http://polar-thicket-1771.herokuapp.com/albums/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
+		String t = getString(R.string.api_url)+"/albums/search.json?q="+requestToSearch+"&order=ASC&offset="+String.valueOf(offse);
 		HttpGet httpget = new HttpGet(t);
 		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
 		try {
