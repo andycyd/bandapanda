@@ -44,7 +44,9 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -53,10 +55,12 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
 
 public class Search extends FragmentActivity {
     private PagerAdapter pageAdapter;
@@ -71,6 +75,7 @@ public class Search extends FragmentActivity {
     Vector<Song> resSearchSongs;
     Vector<Artist> resSearchArtists;
     Vector<Album> resSearchAlbums;
+    Vector<OtherUsers> resSearchUsers;
     int currentPage;
     int finished;
     int windowWidth;
@@ -296,13 +301,7 @@ public class Search extends FragmentActivity {
     		
     		layout1.setOnClickListener(new OnClickListener() { 
                 public void onClick(View v){
-                	//crearMenuArtist(id);
-                	System.out.println("clicado album "+id);
-                	Intent i = new Intent(context, AlbumView.class);
-                	Bundle b = new Bundle();
-                	b.putInt("id", resSearchAlbums.get(id).getID());
-                	i.putExtras(b);
-                	startActivity(i);
+                	crearMenuAlbum(id);
     			}
     		});
     		
@@ -365,13 +364,7 @@ public class Search extends FragmentActivity {
     		
     		layout1.setOnClickListener(new OnClickListener() { 
                 public void onClick(View v){
-                	//crearMenuArtist(id);
-                	System.out.println("clicado artist "+id);
-                	Intent i = new Intent(context, ArtistView.class);
-                	Bundle b = new Bundle();
-                	b.putInt("id", resSearchArtists.get(id).getID());
-                	i.putExtras(b);
-                	startActivity(i);
+                	crearMenuArtist(id);
     			}
     		});
     		
@@ -404,7 +397,7 @@ public class Search extends FragmentActivity {
     private void crearMenu(final int index){
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(resSearchSongs.get(index).getTitle());
-    	CharSequence[] item = {"Play","Add to playing now", "Add to favorites", "Add to a Playlist", "Share"};
+    	CharSequence[] item = {"Play","Add to playing now", "Add to a Playlist", "Share"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			
 			public void onClick(DialogInterface dialog, int which) {
@@ -422,9 +415,6 @@ public class Search extends FragmentActivity {
 			    	current.addSong(resSearchSongs.get(index));
 				}
 				if(which == 2){
-					
-				}
-				if(which == 3){
 					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
 			    	b1.setTitle(resSearchSongs.get(index).getTitle());
 			    	CharSequence[] item = new CharSequence[User.getInstance().getNumberPlaylists()];
@@ -442,8 +432,8 @@ public class Search extends FragmentActivity {
 					});
 			    	b1.show();
 				}
-				if(which == 4){
-					
+				if(which == 3){
+					recommend(resSearchSongs.get(index).getID(), "Song", resSearchSongs.get(index).getTitle());
 				}
 				
 			}
@@ -451,7 +441,96 @@ public class Search extends FragmentActivity {
     	b.show();
     }
     
+    private void crearMenuAlbum(final int index){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(resSearchAlbums.get(index).getName());
+    	CharSequence[] item = {"Watch album","Share"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+					Intent i = new Intent(context, AlbumView.class);
+					Bundle b = new Bundle();
+					b.putInt("id", resSearchAlbums.get(index).getID());
+					i.putExtras(b);
+					startActivity(i);
+				}
+				if(which == 1){
+					recommend(resSearchAlbums.get(index).getID(), "Album", resSearchAlbums.get(index).getName());
+				}
+				
+			}
+		});
+    	b.show();
+    }
     
+    private void crearMenuArtist(final int id){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(resSearchArtists.get(id).getName());
+    	CharSequence[] item = {"Watch artist","Share"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+                	Intent i = new Intent(context, ArtistView.class);
+                	Bundle b = new Bundle();
+                	b.putInt("id", resSearchArtists.get(id).getID());
+                	i.putExtras(b);
+                	startActivity(i);
+				}
+				if(which == 1){
+					recommend(resSearchArtists.get(id).getID(), "Artist", resSearchArtists.get(id).getName());
+				}
+				
+			}
+		});
+    	b.show();
+    }
+    
+    private void recommend(int id, String what, final String name){
+    	final EditText input = new EditText(context);
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle("Recommend "+name);
+    	b.setMessage("search user to recommend");
+    	b.setView(input);
+    	b.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+    	         public void onClick(DialogInterface dialog, int whichButton) {
+    	        	AlertDialog.Builder b1 = new AlertDialog.Builder(context);
+ 			    	b1.setTitle("Recommend "+name);
+ 			    	resSearchUsers = new Vector<OtherUsers>();
+ 			    	/*
+ 			    	 * 
+ 			    	 * Descomentar cuando este la llamada en heroku
+ 			    	 * 
+ 			    	 * 
+ 			    	 * 
+ 			    	 * finished = 0;
+ 			    	LongRunningGetSearchUsers lrgsu = new LongRunningGetSearchUsers(input.getText().toString());
+ 			    	lrgsu.execute();
+					while(finished != 1);*/
+ 			    	CharSequence[] item = new CharSequence[resSearchUsers.size()];
+ 			    	for(int i = 0; i < resSearchUsers.size(); ++i){
+ 			    		item[i]= resSearchUsers.get(i).getName();
+ 			    	}
+ 			    	b1.setItems(item, new DialogInterface.OnClickListener() {
+ 						public void onClick(DialogInterface dialog, int which) {
+ 							finished = 0;
+ 							//falta long running	
+ 							while(finished != 1);
+ 						}
+ 					});
+ 			    	b1.show();
+ 				}
+    	    });
+    	b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+    	         public void onClick(DialogInterface dialog, int whichButton) {
+    	         }
+    	    });
+    	b.show();
+    }
+		
+		
+		
     public class CustomPageAdapter extends PagerAdapter{
     	
     	private final Context context;
@@ -869,17 +948,10 @@ public class Search extends FragmentActivity {
 			alert.show();
     	}
     }
-    
-    private void hideInputMethod(){  
-    	TextView srch = (TextView) findViewById(R.id.searchText);
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);  
-        imm.hideSoftInputFromWindow(srch.getWindowToken(), 0);  
-    }
-    
+        
     
 public class LongRunningGetSearchArtist extends AsyncTask <Void, Void, String> {
 
-    	
 	    ProgressDialog pd;
 	    
 	    @Override
@@ -1131,6 +1203,90 @@ public class LongRunningPostInsertSongPlaylist extends AsyncTask <Void, Void, St
 	}
 } 
   
+public class LongRunningGetSearchUsers extends AsyncTask <Void, Void, String> {
+	ProgressDialog pd;
+	String search;
+    
+	public LongRunningGetSearchUsers(String s){
+		search = s;
+	}
+	
+    @Override
+    protected void onPreExecute(){
+
+	    pd = new ProgressDialog(context);
+
+       	pd.setMessage("Searching...");
+       	pd.setCancelable(false);
+       	pd.setIndeterminate(true);
+       	pd.show();
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpContext localContext = new BasicHttpContext();
+		String t = getString(R.string.api_url)+"/users/search.json?q="+search+"&order=ASC&lim=400";
+		HttpGet httpget = new HttpGet(t);
+		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			HttpResponse response = httpClient.execute(httpget, localContext);
+			StatusLine stl = response.getStatusLine();
+			HttpEntity ent = response.getEntity();
+			String res = String.valueOf(stl.getStatusCode());
+			if(res.equals("200") || res.equals("206")){
+				String src = EntityUtils.toString(ent);
+				JSONArray result = new JSONArray(src);
+				for (int i = 0; i < result.length(); ++i) {
+				    JSONObject rec = result.getJSONObject(i);
+				    int id = Integer.parseInt(rec.getString("user_id"));
+					String name = rec.getString("user_name");
+					OtherUsers u = new OtherUsers(name, id);
+		    		resSearchUsers.add(u);
+				}
+			}
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	
+	protected void onPostExecute(String results) {
+		if(results.equals("200") || results.equals("206")){
+		}
+		else if(results.equals("401")){
+			crearAlert("Error", "Unautorized");
+		}
+		else{
+			crearAlert("Connection error", "No connection with the server");
+		}
+		pd.dismiss();
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void crearAlert(String t, String s){
+		AlertDialog alert = new AlertDialog.Builder(Search.this).create();
+		alert.setTitle(t);
+		alert.setMessage(s);
+		alert.setButton("Close",new DialogInterface.OnClickListener() {
+			
+			public void onClick(final DialogInterface dialog, final int which) {
+			}
+		});
+		alert.show();
+	}
+}
+
+
+private void hideInputMethod(){  
+	TextView srch = (TextView) findViewById(R.id.searchText);
+    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);  
+    imm.hideSoftInputFromWindow(srch.getWindowToken(), 0);  
+}
 
 }
 
