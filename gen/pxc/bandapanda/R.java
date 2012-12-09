@@ -76,35 +76,37 @@ public final class R {
         public static final int btnShuffle=0x7f08001b;
         public static final int buttonSearch=0x7f080001;
         public static final int coverImage=0x7f08000f;
-        public static final int createacount=0x7f08002c;
-        public static final int editText1=0x7f080027;
-        public static final int hiperb=0x7f08002d;
-        public static final int imageView1=0x7f080026;
+        public static final int createacount=0x7f08002e;
+        public static final int editText1=0x7f080029;
+        public static final int goRecommendations=0x7f080006;
+        public static final int hiperb=0x7f08002f;
+        public static final int imageView1=0x7f080028;
         public static final int layoutInfo=0x7f08001e;
         public static final int layoutInfoArtist=0x7f080022;
-        public static final int laypasswd=0x7f08002a;
-        public static final int layusername=0x7f080029;
+        public static final int laypasswd=0x7f08002c;
+        public static final int layusername=0x7f08002b;
         public static final int linearLayout1=0x7f080004;
         public static final int linearLayout2=0x7f080007;
         public static final int linearLayout3=0x7f080008;
         public static final int lisOfPlaylists=0x7f08000a;
-        public static final int loginbutton=0x7f08002b;
-        public static final int menu_new=0x7f080032;
-        public static final int menu_play=0x7f080033;
-        public static final int menu_play_all=0x7f080034;
-        public static final int menu_play_all_songs_album=0x7f08002f;
-        public static final int menu_play_current_playlist_album=0x7f080030;
-        public static final int menu_play_current_playlist_artist=0x7f080031;
-        public static final int menu_play_watching_playlist=0x7f080035;
-        public static final int menu_settings=0x7f08002e;
+        public static final int loginbutton=0x7f08002d;
+        public static final int menu_new=0x7f080034;
+        public static final int menu_play=0x7f080035;
+        public static final int menu_play_all=0x7f080036;
+        public static final int menu_play_all_songs_album=0x7f080031;
+        public static final int menu_play_current_playlist_album=0x7f080032;
+        public static final int menu_play_current_playlist_artist=0x7f080033;
+        public static final int menu_play_watching_playlist=0x7f080037;
+        public static final int menu_settings=0x7f080030;
         public static final int pager=0x7f080002;
         public static final int pager_title_strip=0x7f080003;
         public static final int player_footer_bg=0x7f080010;
         public static final int player_header_bg=0x7f08000b;
         public static final int playlistName=0x7f080024;
+        public static final int recomsLayout=0x7f080027;
+        public static final int scrollView1=0x7f080026;
         public static final int searchText=0x7f080000;
         public static final int searchsongs=0x7f080005;
-        public static final int searchusers=0x7f080006;
         public static final int songCurrentDurationLabel=0x7f080018;
         public static final int songProgressBar=0x7f080016;
         public static final int songThumbnail=0x7f08000e;
@@ -113,7 +115,7 @@ public final class R {
         public static final int songsAlbumList=0x7f08001f;
         public static final int songsInPlaylist=0x7f080025;
         public static final int textView1=0x7f080009;
-        public static final int textpasswd=0x7f080028;
+        public static final int textpasswd=0x7f08002a;
         public static final int timerDisplay=0x7f080017;
     }
     public static final class layout {
@@ -128,7 +130,8 @@ public final class R {
         public static final int view_album=0x7f030008;
         public static final int view_artist=0x7f030009;
         public static final int view_playlist=0x7f03000a;
-        public static final int wellcome=0x7f03000b;
+        public static final int view_recommendations=0x7f03000b;
+        public static final int wellcome=0x7f03000c;
     }
     public static final class menu {
         public static final int activity_search=0x7f070000;

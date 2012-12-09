@@ -20,12 +20,13 @@
             android:layout_height="wrap_content"
             android:onClick="searchSongs"
             android:text="Search Songs" />
-
+
         <Button
-            android:id="@+id/searchusers"
+            android:id="@+id/goRecommendations"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Search Users" />
+            android:onClick="goRecommendations"
+            android:text="Recommendations" />
 
     </LinearLayout>
 

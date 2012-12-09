@@ -72,6 +72,13 @@
                 <category android:name="android.intent.category.APP_MUSIC"/>
             </intent-filter>
         </activity>
+         <activity android:name="RecommendationsView" android:label="@string/app_name"
+            	android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.RECOMMENDATIONS"/>
+                <category android:name="android.intent.category.APP_MUSIC"/>
+            </intent-filter>
+        </activity>
         
     </application>
 

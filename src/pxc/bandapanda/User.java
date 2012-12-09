@@ -174,23 +174,27 @@ public class User {
 	                     
 	                    Notification notification = new Notification(icon, tickerText, when);
 	                    
-	                    CharSequence contentTitle = "My notification";
+	                    CharSequence contentTitle = "~ BandaPanda ~";
 	    				JSONObject result;
 	        			CharSequence contentText = null;
 						try {
 							result = new JSONObject(message);
-							if(!result.getString("event").equals("connection_established") && !result.getString("event").equals("pusher:error")){
+							if(!result.getString("event").equals("connection_established") && !result.getString("event").equals("pusher:error") && !result.getString("event").equals("pusher:heartbeat")){
 							
 								if(result.getString("event").equals("song_recommendation")){
-									contentTitle = "Song recommended:";
-									contentText = "asdfasdfwqer";
+									contentText = "Someone has recommended you a song";
 								}
 								if(result.getString("event").equals("album_recommendation")){
-									contentTitle = "Album recommended:";
-									contentText = "asdfasdfwqer";
+									contentText = "Someone has recommended you an album";
+								}
+								if(result.getString("event").equals("artist_recommendation")){
+									contentText = "Someone has recommended you an artist";
+								}
+								if(result.getString("event").equals("playlist_recommendation")){
+									contentText = "Someone has recommended you a playlist";
 								}
 
-								Intent notificationIntent = new Intent(context, Search.class);
+								Intent notificationIntent = new Intent(context, RecommendationsView.class);
 								PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 								notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
 								final int HELLO_ID = 1;

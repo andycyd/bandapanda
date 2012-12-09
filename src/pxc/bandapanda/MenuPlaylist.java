@@ -94,9 +94,7 @@ public class MenuPlaylist extends FragmentActivity {
         	LongRunningGetPlaylists lrgi = new LongRunningGetPlaylists();
         	finished = 0;
         	lrgi.execute();
-        	System.out.println("Acaba covers");
         	while(finished != 1); 
-        	System.out.println("ponemos en su sitio");
         }
 
         refreshPlaylists();
@@ -149,7 +147,6 @@ public class MenuPlaylist extends FragmentActivity {
   
     
 	private void refreshPlaylists(){
-
         String[] playlists = new String[vectorPlaylists.size()];        
         ListView list = (ListView) findViewById(R.id.lisOfPlaylists);
         for(int i = 0; i < vectorPlaylists.size(); ++i){
@@ -157,6 +154,7 @@ public class MenuPlaylist extends FragmentActivity {
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
         		  android.R.layout.simple_list_item_1, android.R.id.text1, playlists);
+
         list.setAdapter(adapter);
         list.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
@@ -251,6 +249,12 @@ public class MenuPlaylist extends FragmentActivity {
     }
     
     
+    public void goRecommendations(View view){
+    	Intent i = new Intent(this, RecommendationsView.class );
+    	startActivity(i);  
+    }
+    
+    
  
     public class LongRunningGetPlaylists extends AsyncTask <Void, Void, String> {
 
@@ -283,7 +287,7 @@ public class MenuPlaylist extends FragmentActivity {
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
 
-    				System.out.println(src);
+    				//System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -294,7 +298,7 @@ public class MenuPlaylist extends FragmentActivity {
     				}
     			}
 				finished = 1;
-    			System.out.println(String.valueOf(stl.getStatusCode()));
+    			//System.out.println(String.valueOf(stl.getStatusCode()));
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
     			System.out.println("Error"+e.getLocalizedMessage());
@@ -551,10 +555,10 @@ public class MenuPlaylist extends FragmentActivity {
     			StatusLine stl = response.getStatusLine();
     			HttpEntity ent = response.getEntity();
     			String res = String.valueOf(stl.getStatusCode());
-    			System.out.println(res);
+    			//System.out.println(res);
     			if(res.equals("201")){
     				String src = EntityUtils.toString(ent);
-    				System.out.println(src);
+    				//System.out.println(src);
     				JSONObject result = new JSONObject(src);
         			Playlist p = new Playlist(playlist, Integer.parseInt(result.getString("id")));
         	     	User.getInstance().addPlaylist(p);

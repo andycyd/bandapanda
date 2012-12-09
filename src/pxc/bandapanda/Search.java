@@ -116,8 +116,6 @@ public class Search extends FragmentActivity {
 			}
 		});
 
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.cancel(1);
 		mViewPager.setOnPageChangeListener(new OnPageChangeListener(){
 			public void onPageScrollStateChanged(int arg0) {
 
@@ -191,6 +189,7 @@ public class Search extends FragmentActivity {
 		finished = 0;
 		lrgs.execute();
 		while(finished != 1);
+		System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
 		numSongs = resSearchSongs.size();
 		LongRunningGetCovers lrgc = new LongRunningGetCovers();
     	finished = 0;
@@ -259,6 +258,8 @@ public class Search extends FragmentActivity {
 		finished = 0;
 		lrgsa.execute();
 		while(finished != 1);
+
+		System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
 		numAlbums = resSearchAlbums.size();
 		LongRunningGetCoverAlbums lrgi = new LongRunningGetCoverAlbums();
     	finished = 0;
@@ -487,7 +488,7 @@ public class Search extends FragmentActivity {
     	b.show();
     }
     
-    private void recommend(int id, String what, final String name){
+    private void recommend(final int id, final String what, final String name){
     	final EditText input = new EditText(context);
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle("Recommend "+name);
@@ -514,9 +515,18 @@ public class Search extends FragmentActivity {
  			    	}
  			    	b1.setItems(item, new DialogInterface.OnClickListener() {
  						public void onClick(DialogInterface dialog, int which) {
- 							finished = 0;
- 							//falta long running	
- 							while(finished != 1);
+ 							/*finished = 0;
+ 							 * 
+ 							 * 
+ 							 * 
+ 							 * FALTA ACABAR LA LLAMADA (CUANDO ESPECIFIQUEN EN HEROKU)
+ 							 * 
+ 							 * 
+ 							 * 
+ 							 * 
+ 							LongRunningPostRecommend lrpr = new LongRunningPostRecommend(resSearchUsers.get(which).getID(), id, what);
+ 							lrpr.execute();
+ 							while(finished != 1);*/
  						}
  					});
  			    	b1.show();
@@ -885,7 +895,7 @@ public class Search extends FragmentActivity {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
-    				//System.out.println(src);
+    				System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -985,6 +995,8 @@ public class LongRunningGetSearchArtist extends AsyncTask <Void, Void, String> {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
+
+    				System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -1079,6 +1091,8 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 			String res = String.valueOf(stl.getStatusCode());
 			if(res.equals("200") || res.equals("206")){
 				String src = EntityUtils.toString(ent);
+
+				System.out.println(src);
 				JSONArray result = new JSONArray(src);
 				for (int i = 0; i < result.length(); ++i) {
 				    JSONObject rec = result.getJSONObject(i);
@@ -1281,6 +1295,63 @@ public class LongRunningGetSearchUsers extends AsyncTask <Void, Void, String> {
 	}
 }
 
+public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
+
+	
+    int user;
+    int resource;
+    String type;
+    
+    public LongRunningPostRecommend(int idu, int idr, String tp){
+    	user = idu;
+    	resource = idr;
+    	type = tp;
+    }
+    
+    @Override
+    protected void onPreExecute(){
+
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpContext localContext = new BasicHttpContext();
+		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+Integer.toString(user)+"/recommendations.json?type="+type+"&resource_id="+resource);
+		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			HttpResponse response = httpClient.execute(httppost, localContext);
+			StatusLine stl = response.getStatusLine();
+			String res = String.valueOf(stl.getStatusCode());
+			System.out.println(res);
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	protected void onPostExecute(String results) {
+		if(results.equals("200")){
+			
+		}
+		else{
+
+			AlertDialog alert = new AlertDialog.Builder(Search.this).create();
+			alert.setTitle("Connection Error");
+			alert.setMessage("No connection with the server");
+			alert.setButton("Close",new DialogInterface.OnClickListener() {
+				
+				public void onClick(final DialogInterface dialog, final int which) {
+				}
+			});
+			alert.show();
+		}
+	}
+} 
 
 private void hideInputMethod(){  
 	TextView srch = (TextView) findViewById(R.id.searchText);
