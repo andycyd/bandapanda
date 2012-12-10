@@ -134,7 +134,7 @@ public class PlaylistView extends FragmentActivity {
     	final Playlist pl = User.getInstance().getPlaylists().get(playlistNumber);
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(pl.getSong(index).getTitle());
-    	CharSequence[] item = {"Play","Add to playing now", "Add to favorites", "Add to a Playlist", "Share","Deletle from playlist"};
+    	CharSequence[] item = {"Play","Add to playing now", "Add to favorites", "Add to a Playlist", "Share","Delete from playlist"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == 0){
@@ -149,7 +149,6 @@ public class PlaylistView extends FragmentActivity {
 					current.addSong(pl.getSong(index));
 				}
 				if(which == 2){
-					
 				}
 				if(which == 3){
 					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
@@ -169,25 +168,15 @@ public class PlaylistView extends FragmentActivity {
 					});
 			    	b1.show();
 				}
-				if(which == 4){
-					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
-			    	b1.setTitle(pl.getSong(index).getTitle());
-			    	CharSequence[] item = new CharSequence[User.getInstance().getNumberPlaylists()];
-			    	for(int i = 0; i < User.getInstance().getNumberPlaylists(); ++i){
-			    		item[i]= User.getInstance().getNamePlaylist(i);
-			    	}
-			    	b1.setItems(item, new DialogInterface.OnClickListener() {
-						
-						public void onClick(DialogInterface dialog, int which2) {
-							finished = 0;
-							LongRunningDeleteSongPlaylist ld = new LongRunningDeleteSongPlaylist(User.getInstance().getIdPlaylist(which2), pl.getSong(index).getID());
-							ld.execute();
-							while(finished != 1);
-							fillPlaylist();
-						}
-					});
-			    	b1.show();    	
+				if(which == 5){
+					finished = 0;
+					LongRunningDeleteSongPlaylist ld = new LongRunningDeleteSongPlaylist(User.getInstance().getPlaylists().get(playlistNumber).getID(), pl.getSong(index).getID());
+					ld.execute();
+					while(finished != 1);
+					User.getInstance().getPlaylists().get(playlistNumber).removeSong(index);
+					fillPlaylist();
 				}
+				
 				
 			}
 		});
@@ -281,7 +270,7 @@ public class LongRunningDeleteSongPlaylist extends AsyncTask <Void, Void, String
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
     		
-    		HttpDelete httpdelete = new HttpDelete(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+"/"+Integer.toString(song));
+    		HttpDelete httpdelete = new HttpDelete(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+"/"+Integer.toString(song)+".json");
     		httpdelete.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
     			HttpResponse response = httpClient.execute(httpdelete, localContext);

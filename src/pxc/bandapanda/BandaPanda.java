@@ -104,7 +104,7 @@ public class LongRunningGetIO extends AsyncTask <Void, Void, String> {
     		//nameValuePairs.add(new BasicNameValuePair("user[password]",pass.getText().toString()));
     		
     		HttpContext localContext = new BasicHttpContext();
-    		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/sign_in.json");
+    		HttpPost httppost = new HttpPost("http://polar-thicket-1771.herokuapp.com/users/sign_in.json");
     		try {
 				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 			} catch (UnsupportedEncodingException e1) {

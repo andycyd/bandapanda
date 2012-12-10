@@ -20,6 +20,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -216,7 +217,13 @@ public class MenuPlaylist extends FragmentActivity {
 	             	startActivity(i);
 				}
 				if(which == 1){
+					LongRunningDeletePlaylist ld = new LongRunningDeletePlaylist(User.getInstance().getPlaylists().get(position).getID());
+					finished = 0;
+					ld.execute();
+					while(finished != 1);
 
+		        	vectorPlaylists.remove(position);
+			    	refreshPlaylists();
 				}
 				if(which == 2){
 					urlDrawables = new Vector<String>();
@@ -593,5 +600,61 @@ public class MenuPlaylist extends FragmentActivity {
 			}
     	}
     }    
+    
+
+
+public class LongRunningDeletePlaylist extends AsyncTask <Void, Void, String> {
+
+	
+    int playlist;
+    
+    public LongRunningDeletePlaylist(int p){
+    	playlist = p;
+    }
+    
+    @Override
+    protected void onPreExecute(){
+
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpContext localContext = new BasicHttpContext();
+		
+		HttpDelete httpdelete = new HttpDelete(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+".json");
+		httpdelete.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			HttpResponse response = httpClient.execute(httpdelete, localContext);
+			StatusLine stl = response.getStatusLine();
+			String res = String.valueOf(stl.getStatusCode());
+			System.out.println("Holaa " +res);
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	protected void onPostExecute(String results) {
+		if(results.equals("200")){
+			
+		}
+		else{
+			AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
+			alert.setTitle("Connection Error");
+			alert.setMessage("No connection with the server");
+			alert.setButton("Close",new DialogInterface.OnClickListener() {
+				
+				public void onClick(final DialogInterface dialog, final int which) {
+				}
+			});
+			alert.show();
+		}
+	}
+} 
     
 }
