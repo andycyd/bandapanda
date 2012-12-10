@@ -189,7 +189,7 @@ public class Search extends FragmentActivity {
 		finished = 0;
 		lrgs.execute();
 		while(finished != 1);
-		System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
+		//System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
 		numSongs = resSearchSongs.size();
 		LongRunningGetCovers lrgc = new LongRunningGetCovers();
     	finished = 0;
@@ -259,7 +259,7 @@ public class Search extends FragmentActivity {
 		lrgsa.execute();
 		while(finished != 1);
 
-		System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
+		//System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
 		numAlbums = resSearchAlbums.size();
 		LongRunningGetCoverAlbums lrgi = new LongRunningGetCoverAlbums();
     	finished = 0;
@@ -270,7 +270,7 @@ public class Search extends FragmentActivity {
     	finallayout.setOrientation(1);
     	int i;
     	for(i = 0; i < numAlbums; ++i){
-    		System.out.println("Bucle "+i);
+    		//System.out.println("Bucle "+i);
     		final LinearLayout layout1 = new LinearLayout(context);
     		LinearLayout vertical1 = new LinearLayout(context);
     		vertical1.setOrientation(1);
@@ -333,7 +333,7 @@ public class Search extends FragmentActivity {
     	finallayout.setOrientation(1);
     	int i;
     	for(i = 0; i < numArtists; ++i){
-    		System.out.println("Bucle "+i);
+    		//System.out.println("Bucle "+i);
     		final LinearLayout layout1 = new LinearLayout(context);
     		LinearLayout vertical1 = new LinearLayout(context);
     		vertical1.setOrientation(1);
@@ -434,7 +434,7 @@ public class Search extends FragmentActivity {
 			    	b1.show();
 				}
 				if(which == 3){
-					recommend(resSearchSongs.get(index).getID(), "Song", resSearchSongs.get(index).getTitle());
+					recommend(resSearchSongs.get(index).getID(), "song", resSearchSongs.get(index).getTitle());
 				}
 				
 			}
@@ -457,7 +457,7 @@ public class Search extends FragmentActivity {
 					startActivity(i);
 				}
 				if(which == 1){
-					recommend(resSearchAlbums.get(index).getID(), "Album", resSearchAlbums.get(index).getName());
+					recommend(resSearchAlbums.get(index).getID(), "album", resSearchAlbums.get(index).getName());
 				}
 				
 			}
@@ -480,7 +480,7 @@ public class Search extends FragmentActivity {
                 	startActivity(i);
 				}
 				if(which == 1){
-					recommend(resSearchArtists.get(id).getID(), "Artist", resSearchArtists.get(id).getName());
+					recommend(resSearchArtists.get(id).getID(), "artist", resSearchArtists.get(id).getName());
 				}
 				
 			}
@@ -499,34 +499,20 @@ public class Search extends FragmentActivity {
     	        	AlertDialog.Builder b1 = new AlertDialog.Builder(context);
  			    	b1.setTitle("Recommend "+name);
  			    	resSearchUsers = new Vector<OtherUsers>();
- 			    	/*
- 			    	 * 
- 			    	 * Descomentar cuando este la llamada en heroku
- 			    	 * 
- 			    	 * 
- 			    	 * 
- 			    	 * finished = 0;
+ 			    	finished = 0;
  			    	LongRunningGetSearchUsers lrgsu = new LongRunningGetSearchUsers(input.getText().toString());
  			    	lrgsu.execute();
-					while(finished != 1);*/
+					while(finished != 1);
  			    	CharSequence[] item = new CharSequence[resSearchUsers.size()];
  			    	for(int i = 0; i < resSearchUsers.size(); ++i){
  			    		item[i]= resSearchUsers.get(i).getName();
  			    	}
  			    	b1.setItems(item, new DialogInterface.OnClickListener() {
  						public void onClick(DialogInterface dialog, int which) {
- 							/*finished = 0;
- 							 * 
- 							 * 
- 							 * 
- 							 * FALTA ACABAR LA LLAMADA (CUANDO ESPECIFIQUEN EN HEROKU)
- 							 * 
- 							 * 
- 							 * 
- 							 * 
+ 							finished = 0;
  							LongRunningPostRecommend lrpr = new LongRunningPostRecommend(resSearchUsers.get(which).getID(), id, what);
  							lrpr.execute();
- 							while(finished != 1);*/
+ 							while(finished != 1);
  						}
  					});
  			    	b1.show();
@@ -597,7 +583,7 @@ public class Search extends FragmentActivity {
         @Override
         public synchronized Object instantiateItem(View collection,int position){
         	ScrollView scroll = new ScrollView(context);
-        	System.out.println(position);
+        	//System.out.println(position);
             ((ViewPager) collection).addView(scroll,position);
             return scroll;
         }
@@ -895,7 +881,7 @@ public class Search extends FragmentActivity {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
-    				System.out.println(src);
+    				//System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -996,7 +982,7 @@ public class LongRunningGetSearchArtist extends AsyncTask <Void, Void, String> {
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
 
-    				System.out.println(src);
+    				//System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -1092,7 +1078,7 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 			if(res.equals("200") || res.equals("206")){
 				String src = EntityUtils.toString(ent);
 
-				System.out.println(src);
+				//System.out.println(src);
 				JSONArray result = new JSONArray(src);
 				for (int i = 0; i < result.length(); ++i) {
 				    JSONObject rec = result.getJSONObject(i);
@@ -1188,7 +1174,7 @@ public class LongRunningPostInsertSongPlaylist extends AsyncTask <Void, Void, St
 			HttpResponse response = httpClient.execute(httppost, localContext);
 			StatusLine stl = response.getStatusLine();
 			String res = String.valueOf(stl.getStatusCode());
-			System.out.println(res);
+			//System.out.println(res);
 			finished = 1;
 			return String.valueOf(stl.getStatusCode());
 		} catch (Exception e) {
@@ -1255,7 +1241,7 @@ public class LongRunningGetSearchUsers extends AsyncTask <Void, Void, String> {
 				for (int i = 0; i < result.length(); ++i) {
 				    JSONObject rec = result.getJSONObject(i);
 				    int id = Integer.parseInt(rec.getString("user_id"));
-					String name = rec.getString("user_name");
+					String name = rec.getString("user_username");
 					OtherUsers u = new OtherUsers(name, id);
 		    		resSearchUsers.add(u);
 				}
@@ -1318,13 +1304,14 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 	protected String doInBackground(Void... params) {
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpContext localContext = new BasicHttpContext();
-		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+Integer.toString(user)+"/recommendations.json?type="+type+"&resource_id="+resource);
+		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type="+type+"&resource_id="+resource);
+		System.out.println(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type="+type+"&resource_id="+resource);
 		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
 		try {
 			HttpResponse response = httpClient.execute(httppost, localContext);
 			StatusLine stl = response.getStatusLine();
 			String res = String.valueOf(stl.getStatusCode());
-			System.out.println(res);
+			//System.out.println(res);
 			finished = 1;
 			return String.valueOf(stl.getStatusCode());
 		} catch (Exception e) {
@@ -1335,6 +1322,7 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 	
 	@SuppressWarnings("deprecation")
 	protected void onPostExecute(String results) {
+		System.out.println("corigo retorno: "+results);
 		if(results.equals("200")){
 			
 		}
