@@ -1,18 +1,31 @@
 package pxc.bandapanda;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import pxc.bandapanda.Search.LongRunningPostInsertSongPlaylist;
 
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -36,7 +49,10 @@ public class RecommendationsView extends FragmentActivity{
 	
 	Vector<Recommendation> recommendations;
 	int finished;
-	   public static Context context;
+	public static Context context;
+	Song song;
+	
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,20 +62,10 @@ public class RecommendationsView extends FragmentActivity{
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.cancel(1);
         context = this;
-        /*finished = 0;
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
+        finished = 0;
         LongRunningGetRecommendations lr = new LongRunningGetRecommendations();
         lr.execute();
-        while(finished != 1);*/
-        for(int i = 0; i < 15; ++ i){
-        	Recommendation r = new Recommendation(i, i, "AAA", "BBB", i, "CCC", "DDD");
-        	recommendations.add(r);
-        }
+        while(finished != 1);
         LinearLayout layout = (LinearLayout)findViewById(R.id.recomsLayout);
         for(int i = 0; i < recommendations.size(); ++i){
         	LinearLayout layoutint = new LinearLayout(context);
@@ -68,16 +74,30 @@ public class RecommendationsView extends FragmentActivity{
             t.setText(recommendations.get(i).getType()+": "+recommendations.get(i).getName());
             TextView t1 = new TextView(this);
             t1.setText("By "+recommendations.get(i).getSource_name()+" on "+recommendations.get(i).getDate());
-            t.setTextSize(30);
-            t1.setTextSize(20);
+            TextView t2 = new TextView(this);
+            t2.setText("________________________");
+            t.setTextSize(25);
+            t1.setTextSize(15);
+            t2.setTextSize(10);
             layoutint.addView(t);
             layoutint.addView(t1);
+            layoutint.addView(t2);
             Space s = new Space(this);
             layoutint.addView(s);
             final int id = i;
             layoutint.setOnClickListener(new OnClickListener() { 
                 public void onClick(View v){
                 	if(recommendations.get(id).getType().equals("song")){
+                		crearMenuSong(id);
+                	}
+                	else if(recommendations.get(id).getType().equals("artist")){
+                		crearMenuArtist(id);
+                	}
+                	else if(recommendations.get(id).getType().equals("album")){
+                		crearMenuAlbum(id);
+                	}
+                	else{
+                		
                 	}
     			}
     		});
@@ -85,6 +105,87 @@ public class RecommendationsView extends FragmentActivity{
             layout.addView(layoutint);
         }
         
+    }
+    
+    private void crearMenuSong(final int index){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(recommendations.get(index).getName());
+    	CharSequence[] item = {"Play", "Add to a Playlist"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+					CurrentPL current = CurrentPL.getInstance();
+					current.resetPlaylist();
+					finished = 0;
+					LongRunningGetOneSong lrgos = new LongRunningGetOneSong(recommendations.get(index).getResource_id());
+					lrgos.execute();
+					while(finished!=1);
+			    	current.addSong(song);
+					Intent i = new Intent(context, MusicPlayer.class);
+                	startActivity(i);
+				}
+				if(which == 2){
+					AlertDialog.Builder b1 = new AlertDialog.Builder(context);
+			    	b1.setTitle(recommendations.get(index).getName());
+			    	CharSequence[] item = new CharSequence[User.getInstance().getNumberPlaylists()];
+			    	for(int i = 0; i < User.getInstance().getNumberPlaylists(); ++i){
+			    		item[i]= User.getInstance().getNamePlaylist(i);
+			    	}
+			    	b1.setItems(item, new DialogInterface.OnClickListener() {
+						
+						public void onClick(DialogInterface dialog, int which2) {
+							finished = 0;
+							LongRunningPostInsertSongPlaylist lrpisp = new LongRunningPostInsertSongPlaylist(User.getInstance().getIdPlaylist(which2), recommendations.get(index).getResource_id());
+							lrpisp.execute();
+							while(finished != 1);
+						}
+					});
+			    	b1.show();
+				}
+				
+			}
+		});
+    	b.show();
+    }
+    
+    private void crearMenuAlbum(final int index){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(recommendations.get(index).getName());
+    	CharSequence[] item = {"Watch album"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+					Intent i = new Intent(context, AlbumView.class);
+					Bundle b = new Bundle();
+					b.putInt("id", recommendations.get(index).getResource_id());
+					i.putExtras(b);
+					startActivity(i);
+				}
+				
+			}
+		});
+    	b.show();
+    }
+    
+    private void crearMenuArtist(final int index){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(recommendations.get(index).getName());
+    	CharSequence[] item = {"Watch artist"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+                	Intent i = new Intent(context, ArtistView.class);
+                	Bundle b = new Bundle();
+                	b.putInt("id", recommendations.get(index).getResource_id());
+                	i.putExtras(b);
+                	startActivity(i);
+				}
+				
+			}
+		});
+    	b.show();
     }
     
 public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String> {
@@ -104,10 +205,10 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
 	    
     	@Override
     	protected String doInBackground(Void... params) {
-    		TextView search = (TextView)findViewById(R.id.searchText);
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
     		String t = getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/recommendations.json";
+    		System.out.println(getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/recommendations.json");
     		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
@@ -122,8 +223,8 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
     				    JSONObject rec = result.getJSONObject(i);
     				    int sourID = Integer.parseInt(rec.getString("source_id"));
     					String type = rec.getString("type");
-    					String source_name = rec.getString("source_name");
-    					String name = rec.getString("name");
+    					String source_name = rec.getString("source_username");
+    					String name = rec.getString("resource_name");
     					int resID = Integer.parseInt(rec.getString("resource_id"));
     					String date = rec.getString("date");
     					int read = Integer.parseInt(rec.getString("read"));
@@ -141,6 +242,7 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
     	
     	
 		protected void onPostExecute(String results) {
+			System.out.println(results);
     		if(results.equals("200") || results.equals("206")){
 			}
 			else{
@@ -163,4 +265,149 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
     	}
     }
 
+	public class LongRunningGetOneSong extends AsyncTask <Void, Void, String> {
+	
+		ProgressDialog pd;
+		int id;
+	
+		
+		public LongRunningGetOneSong(int i){
+			id = i;
+		}
+		
+	    public Object fetch(String address) throws MalformedURLException, IOException{
+			URL url = new URL(address);
+			Object content = url.getContent();
+			return content;
+	    	
+	    }
+	    
+	
+	    private Drawable ImageOperations(Context ctx, String url) {
+	        try {
+	            InputStream is = (InputStream) this.fetch(url);
+	            Drawable d = Drawable.createFromStream(is, "src");
+	            return d;
+	        } catch (MalformedURLException e) {
+	            return null;
+	        } catch (IOException e) {
+	            return null;
+	        }
+	    }
+	    
+	   @Override
+	   protected void onPreExecute(){
+		    pd = new ProgressDialog(context);
+	      	pd.setMessage("Searching...");
+	      	pd.setCancelable(false);
+	      	pd.setIndeterminate(true);
+	      	pd.show();
+	   }
+	   
+	   @Override 
+	   protected void onPostExecute(final String s){
+		   pd.dismiss();
+	   }
+		@Override
+		protected String doInBackground(Void... params) {
+			HttpClient httpClient = new DefaultHttpClient();
+			HttpContext localContext = new BasicHttpContext();
+			String t = getString(R.string.api_url)+"/songs/"+id+".json?";
+			HttpGet httpget = new HttpGet(t);
+			httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+			try {
+				HttpResponse response = httpClient.execute(httpget, localContext);
+				StatusLine stl = response.getStatusLine();
+				HttpEntity ent = response.getEntity();
+				String res = String.valueOf(stl.getStatusCode());
+				if(res.equals("200")){
+					String src = EntityUtils.toString(ent);
+					JSONObject rec = new JSONObject(src);
+					int ID = Integer.parseInt(rec.getString("song_id"));
+					String title = rec.getString("song_title");
+					int IDalbum = Integer.parseInt(rec.getString("album_id"));
+					String album = rec.getString("album_title");
+					int IDgroup = Integer.parseInt(rec.getString("artist_id"));
+					String group = rec.getString("artist_name");
+					String url = getString(R.string.resources_url)+rec.getString("audio_url");
+					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
+					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
+					song = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
+					song.setDcover(ImageOperations(context,song.getCover()));
+				}
+				finished = 1;
+			} catch (Exception ex) {
+				return null;
+			}
+	       
+			return null;
+		}
+	}
+	
+	
+	public class LongRunningPostInsertSongPlaylist extends AsyncTask <Void, Void, String> {
+	
+		
+	    int playlist;
+	    int song;
+	    
+	    public LongRunningPostInsertSongPlaylist(int pl, int s){
+	    	playlist = pl;
+	    	song = s;
+	    }
+	    
+	    @Override
+	    protected void onPreExecute(){
+	
+	    }
+	    
+	    
+		@Override
+		protected String doInBackground(Void... params) {
+			HttpClient httpClient = new DefaultHttpClient();
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+			nameValuePairs.add(new BasicNameValuePair("song_id",Integer.toString(song)));
+			HttpContext localContext = new BasicHttpContext();
+			HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+".json");
+			httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+			try {
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}
+			try {
+				HttpResponse response = httpClient.execute(httppost, localContext);
+				StatusLine stl = response.getStatusLine();
+				String res = String.valueOf(stl.getStatusCode());
+				//System.out.println(res);
+				finished = 1;
+				return String.valueOf(stl.getStatusCode());
+			} catch (Exception e) {
+				System.out.println("Error"+e.getLocalizedMessage());
+				return e.getLocalizedMessage();
+			}
+		}
+		
+		@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
+			if(results.equals("200")){
+				
+			}
+			else{
+	
+				AlertDialog alert = new AlertDialog.Builder(context).create();
+				alert.setTitle("Connection Error");
+				alert.setMessage("No connection with the server");
+				alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+				alert.show();
+			}
+		}
+	} 
+	
+	
+	
 }

@@ -1140,68 +1140,68 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 	}
 }
     
-public class LongRunningPostInsertSongPlaylist extends AsyncTask <Void, Void, String> {
-
+	public class LongRunningPostInsertSongPlaylist extends AsyncTask <Void, Void, String> {
 	
-    int playlist;
-    int song;
-    
-    public LongRunningPostInsertSongPlaylist(int pl, int s){
-    	playlist = pl;
-    	song = s;
-    }
-    
-    @Override
-    protected void onPreExecute(){
-
-    }
-    
-    
-	@Override
-	protected String doInBackground(Void... params) {
-		HttpClient httpClient = new DefaultHttpClient();
-		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-		nameValuePairs.add(new BasicNameValuePair("song_id",Integer.toString(song)));
-		HttpContext localContext = new BasicHttpContext();
-		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+".json");
-		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
-		try {
-			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-		}
-		try {
-			HttpResponse response = httpClient.execute(httppost, localContext);
-			StatusLine stl = response.getStatusLine();
-			String res = String.valueOf(stl.getStatusCode());
-			//System.out.println(res);
-			finished = 1;
-			return String.valueOf(stl.getStatusCode());
-		} catch (Exception e) {
-			System.out.println("Error"+e.getLocalizedMessage());
-			return e.getLocalizedMessage();
-		}
-	}
+		
+	    int playlist;
+	    int song;
+	    
+	    public LongRunningPostInsertSongPlaylist(int pl, int s){
+	    	playlist = pl;
+	    	song = s;
+	    }
+	    
+	    @Override
+	    protected void onPreExecute(){
 	
-	@SuppressWarnings("deprecation")
-	protected void onPostExecute(String results) {
-		if(results.equals("200")){
-			
+	    }
+	    
+	    
+		@Override
+		protected String doInBackground(Void... params) {
+			HttpClient httpClient = new DefaultHttpClient();
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+			nameValuePairs.add(new BasicNameValuePair("song_id",Integer.toString(song)));
+			HttpContext localContext = new BasicHttpContext();
+			HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/playlists/"+Integer.toString(playlist)+".json");
+			httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+			try {
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}
+			try {
+				HttpResponse response = httpClient.execute(httppost, localContext);
+				StatusLine stl = response.getStatusLine();
+				String res = String.valueOf(stl.getStatusCode());
+				//System.out.println(res);
+				finished = 1;
+				return String.valueOf(stl.getStatusCode());
+			} catch (Exception e) {
+				System.out.println("Error"+e.getLocalizedMessage());
+				return e.getLocalizedMessage();
+			}
 		}
-		else{
-
-			AlertDialog alert = new AlertDialog.Builder(Search.this).create();
-			alert.setTitle("Connection Error");
-			alert.setMessage("No connection with the server");
-			alert.setButton("Close",new DialogInterface.OnClickListener() {
+		
+		@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
+			if(results.equals("200")){
 				
-				public void onClick(final DialogInterface dialog, final int which) {
-				}
-			});
-			alert.show();
+			}
+			else{
+	
+				AlertDialog alert = new AlertDialog.Builder(Search.this).create();
+				alert.setTitle("Connection Error");
+				alert.setMessage("No connection with the server");
+				alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+				alert.show();
+			}
 		}
-	}
-} 
+	} 
   
 public class LongRunningGetSearchUsers extends AsyncTask <Void, Void, String> {
 	ProgressDialog pd;
@@ -1310,8 +1310,6 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 		try {
 			HttpResponse response = httpClient.execute(httppost, localContext);
 			StatusLine stl = response.getStatusLine();
-			String res = String.valueOf(stl.getStatusCode());
-			//System.out.println(res);
 			finished = 1;
 			return String.valueOf(stl.getStatusCode());
 		} catch (Exception e) {
@@ -1323,7 +1321,7 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 	@SuppressWarnings("deprecation")
 	protected void onPostExecute(String results) {
 		System.out.println("corigo retorno: "+results);
-		if(results.equals("200")){
+		if(results.equals("201")){
 			
 		}
 		else{
