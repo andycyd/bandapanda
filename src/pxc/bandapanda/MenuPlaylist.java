@@ -32,7 +32,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import pxc.bandapanda.Search.LongRunningGetImages;
+import pxc.bandapanda.Search.LongRunningGetSearchUsers;
 import pxc.bandapanda.Search.LongRunningPostInsertSongPlaylist;
+import pxc.bandapanda.Search.LongRunningPostRecommend;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -73,6 +75,8 @@ public class MenuPlaylist extends FragmentActivity {
    Vector<Playlist> vectorPlaylists;
    int finished;
    Vector<String> urlDrawables;
+
+   Vector<OtherUsers> resSearchUsers;
    Vector<Drawable> drawable;
    int numSongs;
 
@@ -248,10 +252,48 @@ public class MenuPlaylist extends FragmentActivity {
 	             	startActivity(i);
 				}
 				if(which == 4){
+					recommendPlaylist(User.getInstance().getPlaylists().get(position).getID(), User.getInstance().getPlaylists().get(position).getName());
 					
 				}
 			}
 		});
+    	b.show();
+    }
+    
+    private void recommendPlaylist(final int id, final String name){
+    	final EditText input = new EditText(context);
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle("Recommend "+name);
+    	b.setMessage("Search user to recommend");
+    	b.setView(input);
+    	b.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+    	         public void onClick(DialogInterface dialog, int whichButton) {
+    	        	AlertDialog.Builder b1 = new AlertDialog.Builder(context);
+ 			    	b1.setTitle("Recommend "+name);
+ 			    	resSearchUsers = new Vector<OtherUsers>();
+ 			    	finished = 0;
+ 			    	LongRunningGetSearchUsers lrgsu = new LongRunningGetSearchUsers(input.getText().toString());
+ 			    	lrgsu.execute();
+					while(finished != 1);
+ 			    	CharSequence[] item = new CharSequence[resSearchUsers.size()];
+ 			    	for(int i = 0; i < resSearchUsers.size(); ++i){
+ 			    		item[i]= resSearchUsers.get(i).getName();
+ 			    	}
+ 			    	b1.setItems(item, new DialogInterface.OnClickListener() {
+ 						public void onClick(DialogInterface dialog, int which) {
+ 							finished = 0;
+ 							LongRunningPostRecommend lrpr = new LongRunningPostRecommend(resSearchUsers.get(which).getID(), id, "playlist");
+ 							lrpr.execute();
+ 							while(finished != 1);
+ 						}
+ 					});
+ 			    	b1.show();
+ 				}
+    	    });
+    	b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+    	         public void onClick(DialogInterface dialog, int whichButton) {
+    	         }
+    	    });
     	b.show();
     }
     
@@ -656,5 +698,149 @@ public class LongRunningDeletePlaylist extends AsyncTask <Void, Void, String> {
 		}
 	}
 } 
+
+public class LongRunningGetSearchUsers extends AsyncTask <Void, Void, String> {
+	ProgressDialog pd;
+	String search;
+    
+	public LongRunningGetSearchUsers(String s){
+		search = s;
+	}
+	
+    @Override
+    protected void onPreExecute(){
+
+	    pd = new ProgressDialog(context);
+
+       	pd.setMessage("Searching...");
+       	pd.setCancelable(false);
+       	pd.setIndeterminate(true);
+       	pd.show();
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpContext localContext = new BasicHttpContext();
+		String t = getString(R.string.api_url)+"/users/search.json?q="+search+"&order=ASC&lim=400";
+		HttpGet httpget = new HttpGet(t);
+		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			HttpResponse response = httpClient.execute(httpget, localContext);
+			StatusLine stl = response.getStatusLine();
+			HttpEntity ent = response.getEntity();
+			String res = String.valueOf(stl.getStatusCode());
+			if(res.equals("200") || res.equals("206")){
+				String src = EntityUtils.toString(ent);
+				JSONArray result = new JSONArray(src);
+				for (int i = 0; i < result.length(); ++i) {
+				    JSONObject rec = result.getJSONObject(i);
+				    int id = Integer.parseInt(rec.getString("user_id"));
+					String name = rec.getString("user_username");
+					OtherUsers u = new OtherUsers(name, id);
+		    		resSearchUsers.add(u);
+				}
+			}
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	
+	protected void onPostExecute(String results) {
+		if(results.equals("200") || results.equals("206")){
+		}
+		else if(results.equals("401")){
+			crearAlert("Error", "Unautorized");
+		}
+		else{
+			crearAlert("Connection error", "No connection with the server");
+		}
+		pd.dismiss();
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void crearAlert(String t, String s){
+		AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
+		alert.setTitle(t);
+		alert.setMessage(s);
+		alert.setButton("Close",new DialogInterface.OnClickListener() {
+			
+			public void onClick(final DialogInterface dialog, final int which) {
+			}
+		});
+		alert.show();
+	}
+}
+
+
+public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
+
+	
+    int user;
+    int resource;
+    
+    public LongRunningPostRecommend(int idu, int idr, String tp){
+    	user = idu;
+    	resource = idr;
+    }
+    
+    @Override
+    protected void onPreExecute(){
+
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpContext localContext = new BasicHttpContext();
+		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type=playlist&resource_id="+resource);
+		//System.out.println(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type="+type+"&resource_id="+resource);
+		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			HttpResponse response = httpClient.execute(httppost, localContext);
+			StatusLine stl = response.getStatusLine();
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	protected void onPostExecute(String results) {
+		System.out.println("corigo retorno: "+results);
+		if(results.equals("201")){
+			
+		}
+		else{
+
+			AlertDialog alert = new AlertDialog.Builder(MenuPlaylist.this).create();
+			alert.setTitle("Connection Error");
+			alert.setMessage("No connection with the server");
+			alert.setButton("Close",new DialogInterface.OnClickListener() {
+				
+				public void onClick(final DialogInterface dialog, final int which) {
+				}
+			});
+			alert.show();
+		}
+	}
+} 
+
+private void hideInputMethod(){  
+	TextView srch = (TextView) findViewById(R.id.searchText);
+    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);  
+    imm.hideSoftInputFromWindow(srch.getWindowToken(), 0);  
+}
+
+
+
     
 }

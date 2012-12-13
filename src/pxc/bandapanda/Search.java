@@ -492,7 +492,7 @@ public class Search extends FragmentActivity {
     	final EditText input = new EditText(context);
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle("Recommend "+name);
-    	b.setMessage("search user to recommend");
+    	b.setMessage("Search user to recommend");
     	b.setView(input);
     	b.setPositiveButton("Search", new DialogInterface.OnClickListener() {
     	         public void onClick(DialogInterface dialog, int whichButton) {

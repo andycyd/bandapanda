@@ -25,6 +25,8 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import pxc.bandapanda.MenuPlaylist.LongRunningGetImages;
+import pxc.bandapanda.MenuPlaylist.LongRunningGetOnePlaylist;
 import pxc.bandapanda.Search.LongRunningPostInsertSongPlaylist;
 
 import android.app.AlertDialog;
@@ -33,6 +35,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -72,6 +75,18 @@ public class RecommendationsView extends FragmentActivity{
         	layoutint.setOrientation(1);
             TextView t = new TextView(this);
             t.setText(recommendations.get(i).getType()+": "+recommendations.get(i).getName());
+            if(recommendations.get(i).getType().equals("song")) {
+            	t.setTextColor(Color.RED);
+            }
+            if(recommendations.get(i).getType().equals("playlist")) {
+            	t.setTextColor(Color.YELLOW);
+            }
+            if(recommendations.get(i).getType().equals("album")) {
+            	t.setTextColor(Color.BLUE);
+            }
+            if(recommendations.get(i).getType().equals("artist")) {
+            	t.setTextColor(Color.GREEN);
+            }
             TextView t1 = new TextView(this);
             t1.setText("By "+recommendations.get(i).getSource_name()+" on "+recommendations.get(i).getDate());
             TextView t2 = new TextView(this);
@@ -97,6 +112,7 @@ public class RecommendationsView extends FragmentActivity{
                 		crearMenuAlbum(id);
                 	}
                 	else{
+                		crearMenuPlaylist(id);
                 		
                 	}
     			}
@@ -187,6 +203,55 @@ public class RecommendationsView extends FragmentActivity{
 		});
     	b.show();
     }
+    
+    private void crearMenuPlaylist(final int index){
+    	AlertDialog.Builder b = new AlertDialog.Builder(context);
+    	b.setTitle(recommendations.get(index).getName());
+    	CharSequence[] item = {"Play", "Add to my Playlists"};
+    	b.setItems(item, new DialogInterface.OnClickListener() {
+			
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0){
+					finished = 0;
+					LongRunningGetOnePlaylist lrgos = new LongRunningGetOnePlaylist(recommendations.get(index).getResource_id());
+					lrgos.execute();
+					while(finished!=1);
+			    	Intent i = new Intent(context, MusicPlayer.class);
+                	startActivity(i);
+				}
+				
+				if(which == 1){
+					finished = 0;
+					LongRunningGetOnePlaylist lrgos = new LongRunningGetOnePlaylist(recommendations.get(index).getResource_id());
+					lrgos.execute();
+					while(finished!=1);
+					String[] ids = new String[CurrentPL.getInstance().getNumSongs()-1];
+					for(int i = 0; i < CurrentPL.getInstance().getNumSongs(); ++i){
+						ids[i] = String.valueOf(CurrentPL.getInstance().getSong(i).getID());
+					}
+					finished = 0;
+					LongRunningPostPlaylist lrgos2 = new LongRunningPostPlaylist(CurrentPL.getInstance().getName(), ids);
+					lrgos2.execute();
+					while(finished!=1);
+
+
+					AlertDialog alert = new AlertDialog.Builder(RecommendationsView.this).create();
+					alert.setTitle("Success");
+					alert.setMessage("Playlist added to your playlists.");
+					alert.setButton("Close",new DialogInterface.OnClickListener() {
+						
+						public void onClick(final DialogInterface dialog, final int which) {
+						}
+					});
+					alert.show();
+					
+				}
+				
+			}
+		});
+    	b.show();
+    }
+
     
 public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String> {
 
@@ -407,6 +472,182 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
 			}
 		}
 	} 
+	
+public class LongRunningGetOnePlaylist extends AsyncTask <Void, Void, String> {
+
+    	
+	    ProgressDialog pd;
+	    int idPlaylist;
+	    
+	    public LongRunningGetOnePlaylist(int a){
+	    	idPlaylist = a;
+    	}
+	    
+	    @Override
+	    protected void onPreExecute(){
+
+		    pd = new ProgressDialog(context);
+
+	       	pd.setMessage("Loading playlist...");
+	       	pd.setCancelable(false);
+	       	pd.setIndeterminate(true);
+	       	pd.show();
+        }
+	    
+	    
+    	@Override
+    	protected String doInBackground(Void... params) {
+    		CurrentPL.getInstance().resetPlaylist();
+    		HttpClient httpClient = new DefaultHttpClient();
+    		HttpContext localContext = new BasicHttpContext();
+    		HttpGet httpget = new HttpGet(getString(R.string.api_url)+"/playlists/"+idPlaylist+".json?lim=200");
+    		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+    		try {
+    			HttpResponse response = httpClient.execute(httpget, localContext);
+    			StatusLine stl = response.getStatusLine();
+    			int res = stl.getStatusCode();
+    			HttpEntity ent = response.getEntity();
+    			String src = EntityUtils.toString(ent);
+    			JSONObject result = new JSONObject(src);
+    			JSONArray playl = result.getJSONArray("songs");
+    			for (int i = 0; i < playl.length(); ++i) {
+    				JSONObject rec = playl.getJSONObject(i);
+				    int ID = Integer.parseInt(rec.getString("song_id"));
+					String title = rec.getString("song_title");
+					int IDalbum = Integer.parseInt(rec.getString("album_id"));
+					String album = rec.getString("album_title");
+					int IDgroup = Integer.parseInt(rec.getString("artist_id"));
+					String group = rec.getString("artist_name");
+					String url = getString(R.string.resources_url)+rec.getString("audio_url");
+					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
+					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
+					CurrentPL.getInstance().addSong(song);
+    			}
+				finished = 1;
+    			return String.valueOf(stl.getStatusCode());
+    		} catch (Exception e) {
+    			System.out.println("Error"+e.getLocalizedMessage());
+    			return e.getLocalizedMessage();
+    		}
+    	}
+    	
+    	@SuppressWarnings("deprecation")
+		protected void onPostExecute(String results) {
+    		if(results.equals("200")){
+				pd.dismiss();
+			}
+			else if(results.equals("401")){
+
+    			AlertDialog alert = new AlertDialog.Builder(RecommendationsView.this).create();
+    			alert.setTitle("Login error");
+    			alert.setMessage("User/Password incorrect.");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			pd.dismiss();
+    			alert.show();
+			}
+			else{
+
+    			AlertDialog alert = new AlertDialog.Builder(RecommendationsView.this).create();
+    			alert.setTitle("Connection error");
+    			alert.setMessage("No connection with the server");
+    			alert.setButton("Close",new DialogInterface.OnClickListener() {
+					
+					public void onClick(final DialogInterface dialog, final int which) {
+					}
+				});
+    			pd.dismiss();
+    			alert.show();
+			}
+    	}
+    }
+
+public class LongRunningPostPlaylist extends AsyncTask <Void, Void, String> {
+
+	
+    ProgressDialog pd;
+    String playlist;
+    String[] ids;
+    
+    public LongRunningPostPlaylist(String t, String[] idss){
+    	playlist = t;
+    	ids = idss;
+    	
+    }
+    
+    @Override
+    protected void onPreExecute(){
+
+	    pd = new ProgressDialog(context);
+
+       	pd.setMessage("Logging in...");
+       	pd.setCancelable(false);
+       	pd.setIndeterminate(true);
+       	pd.show();
+    }
+    
+    
+	@Override
+	protected String doInBackground(Void... params) {
+		HttpClient httpClient = new DefaultHttpClient();
+		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+		nameValuePairs.add(new BasicNameValuePair("name",playlist));
+		nameValuePairs.add(new BasicNameValuePair("songs",ids.toString()));
+		HttpContext localContext = new BasicHttpContext();
+		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/playlists.json");
+		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
+		try {
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			HttpResponse response = httpClient.execute(httppost, localContext);
+			StatusLine stl = response.getStatusLine();
+			HttpEntity ent = response.getEntity();
+			String res = String.valueOf(stl.getStatusCode());
+			//System.out.println(res);
+			if(res.equals("201")){
+				String src = EntityUtils.toString(ent);
+				//System.out.println(src);
+				JSONObject result = new JSONObject(src);
+    			Playlist p = new Playlist(playlist, Integer.parseInt(result.getString("id")));
+    	     	User.getInstance().addPlaylist(p);
+    	     	
+			}
+			finished = 1;
+			return String.valueOf(stl.getStatusCode());
+		} catch (Exception e) {
+			System.out.println("Error"+e.getLocalizedMessage());
+			return e.getLocalizedMessage();
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	protected void onPostExecute(String results) {
+		if(results.equals("201") || results.equals("500")){
+			
+			pd.dismiss();
+		}
+		else{
+
+			AlertDialog alert = new AlertDialog.Builder(RecommendationsView.this).create();
+			alert.setTitle("Connection Error");
+			alert.setMessage("No connection with the server");
+			alert.setButton("Close",new DialogInterface.OnClickListener() {
+				
+				public void onClick(final DialogInterface dialog, final int which) {
+				}
+			});
+			pd.dismiss();
+			alert.show();
+		}
+	}
+}    
+
 	
 	
 	
