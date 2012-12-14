@@ -219,7 +219,6 @@ public class PlaylistView extends FragmentActivity {
     			HttpResponse response = httpClient.execute(httppost, localContext);
     			StatusLine stl = response.getStatusLine();
     			String res = String.valueOf(stl.getStatusCode());
-    			System.out.println(res);
     			finished = 1;
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
@@ -276,7 +275,6 @@ public class LongRunningDeleteSongPlaylist extends AsyncTask <Void, Void, String
     			HttpResponse response = httpClient.execute(httpdelete, localContext);
     			StatusLine stl = response.getStatusLine();
     			String res = String.valueOf(stl.getStatusCode());
-    			System.out.println(res);
     			finished = 1;
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {

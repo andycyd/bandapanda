@@ -209,11 +209,8 @@ public class ArtistView extends FragmentActivity {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200")){
     				String src = EntityUtils.toString(ent);
-    				//System.out.println(src);
-    				//{artist_name, artist_image, artist_info, artist_year, artist_albums: [album_id, album_title, album_cover]* }
     				JSONObject result = new JSONObject(src);
 
-					System.out.println("Hola sonia 3");
     				artistInf.setName(result.getString("artist_name"));
     				artistInf.setCover(getString(R.string.resources_url)+result.getString("artist_image"));
     				artistInf.setInfo(result.getString("artist_info"));
@@ -221,13 +218,11 @@ public class ArtistView extends FragmentActivity {
     				image = ImageOperations(context, artistInf.getCover());
     				JSONArray songs = result.getJSONArray("artist_albums");
     				for (int i = 0; i < songs.length(); ++i) {
-    					System.out.println("Hola sonia");
     				    JSONObject rec = songs.getJSONObject(i);
     				    int ID = Integer.parseInt(rec.getString("album_id"));
     					String name = rec.getString("album_title");
     					String url = getString(R.string.resources_url)+rec.getString("album_cover");
     					Album s = new Album(ID, name, artistInf.getID(), artistInf.getName(), url);
-    					System.out.println("Hola sonia 2");
     					artistInf.addAlbum(s);
     				}
     			}
@@ -241,7 +236,6 @@ public class ArtistView extends FragmentActivity {
     	
     	
 		protected void onPostExecute(String results) {
-			System.out.println(results);
     		if(results.equals("200")){
 			}
 			else{

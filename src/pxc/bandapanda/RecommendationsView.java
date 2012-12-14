@@ -25,10 +25,6 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import pxc.bandapanda.MenuPlaylist.LongRunningGetImages;
-import pxc.bandapanda.MenuPlaylist.LongRunningGetOnePlaylist;
-import pxc.bandapanda.Search.LongRunningPostInsertSongPlaylist;
-
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
@@ -42,7 +38,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Space;
 import android.widget.TextView;
@@ -53,7 +48,9 @@ public class RecommendationsView extends FragmentActivity{
 	Vector<Recommendation> recommendations;
 	int finished;
 	public static Context context;
+	Vector<Drawable> drawable;
 	Song song;
+	JSONArray ids;
 	
 	
     @Override
@@ -71,7 +68,7 @@ public class RecommendationsView extends FragmentActivity{
         while(finished != 1);
         LinearLayout layout = (LinearLayout)findViewById(R.id.recomsLayout);
         for(int i = 0; i < recommendations.size(); ++i){
-        	LinearLayout layoutint = new LinearLayout(context);
+        	final LinearLayout layoutint = new LinearLayout(context);
         	layoutint.setOrientation(1);
             TextView t = new TextView(this);
             t.setText(recommendations.get(i).getType()+": "+recommendations.get(i).getName());
@@ -82,7 +79,7 @@ public class RecommendationsView extends FragmentActivity{
             	t.setTextColor(Color.YELLOW);
             }
             if(recommendations.get(i).getType().equals("album")) {
-            	t.setTextColor(Color.BLUE);
+            	t.setTextColor(Color.CYAN);
             }
             if(recommendations.get(i).getType().equals("artist")) {
             	t.setTextColor(Color.GREEN);
@@ -99,9 +96,11 @@ public class RecommendationsView extends FragmentActivity{
             layoutint.addView(t2);
             Space s = new Space(this);
             layoutint.addView(s);
+            if(recommendations.get(i).getRead() == 0) layoutint.setBackgroundColor(Color.GRAY);
             final int id = i;
             layoutint.setOnClickListener(new OnClickListener() { 
                 public void onClick(View v){
+                	layoutint.setBackgroundColor(Color.TRANSPARENT);
                 	if(recommendations.get(id).getType().equals("song")){
                 		crearMenuSong(id);
                 	}
@@ -216,6 +215,17 @@ public class RecommendationsView extends FragmentActivity{
 					LongRunningGetOnePlaylist lrgos = new LongRunningGetOnePlaylist(recommendations.get(index).getResource_id());
 					lrgos.execute();
 					while(finished!=1);
+
+			    	finished = 0;
+
+					drawable = new Vector<Drawable>();
+					LongRunningGetImages lrgi = new LongRunningGetImages();
+			    	lrgi.execute();
+					while(finished != 1);
+					int numSongs = CurrentPL.getInstance().getNumSongs();
+				    for(int i = 0; i < numSongs; ++i){
+				    	CurrentPL.getInstance().getSong(i).setDcover((Drawable) drawable.get(CurrentPL.getInstance().getSong(i).getCoverDrawablePointer()));
+				    }
 			    	Intent i = new Intent(context, MusicPlayer.class);
                 	startActivity(i);
 				}
@@ -225,12 +235,12 @@ public class RecommendationsView extends FragmentActivity{
 					LongRunningGetOnePlaylist lrgos = new LongRunningGetOnePlaylist(recommendations.get(index).getResource_id());
 					lrgos.execute();
 					while(finished!=1);
-					String[] ids = new String[CurrentPL.getInstance().getNumSongs()-1];
+					ids = new JSONArray();
 					for(int i = 0; i < CurrentPL.getInstance().getNumSongs(); ++i){
-						ids[i] = String.valueOf(CurrentPL.getInstance().getSong(i).getID());
+						ids.put(CurrentPL.getInstance().getSong(i).getID());
 					}
 					finished = 0;
-					LongRunningPostPlaylist lrgos2 = new LongRunningPostPlaylist(CurrentPL.getInstance().getName(), ids);
+					LongRunningPostPlaylist lrgos2 = new LongRunningPostPlaylist(recommendations.get(index).getName());
 					lrgos2.execute();
 					while(finished!=1);
 
@@ -273,7 +283,6 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
     		HttpClient httpClient = new DefaultHttpClient();
     		HttpContext localContext = new BasicHttpContext();
     		String t = getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/recommendations.json";
-    		System.out.println(getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/recommendations.json");
     		HttpGet httpget = new HttpGet(t);
     		httpget.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
@@ -307,7 +316,6 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
     	
     	
 		protected void onPostExecute(String results) {
-			System.out.println(results);
     		if(results.equals("200") || results.equals("206")){
 			}
 			else{
@@ -443,8 +451,6 @@ public class LongRunningGetRecommendations extends AsyncTask <Void, Void, String
 			try {
 				HttpResponse response = httpClient.execute(httppost, localContext);
 				StatusLine stl = response.getStatusLine();
-				String res = String.valueOf(stl.getStatusCode());
-				//System.out.println(res);
 				finished = 1;
 				return String.valueOf(stl.getStatusCode());
 			} catch (Exception e) {
@@ -505,7 +511,6 @@ public class LongRunningGetOnePlaylist extends AsyncTask <Void, Void, String> {
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
     			StatusLine stl = response.getStatusLine();
-    			int res = stl.getStatusCode();
     			HttpEntity ent = response.getEntity();
     			String src = EntityUtils.toString(ent);
     			JSONObject result = new JSONObject(src);
@@ -521,7 +526,7 @@ public class LongRunningGetOnePlaylist extends AsyncTask <Void, Void, String> {
 					String url = getString(R.string.resources_url)+rec.getString("audio_url");
 					String cover = getString(R.string.resources_url)+rec.getString("cover_url");
 					Song s = new Song(ID, title, IDalbum, album, IDgroup, group, cover, -1,  url);
-					CurrentPL.getInstance().addSong(song);
+					CurrentPL.getInstance().addSong(s);
     			}
 				finished = 1;
     			return String.valueOf(stl.getStatusCode());
@@ -570,11 +575,9 @@ public class LongRunningPostPlaylist extends AsyncTask <Void, Void, String> {
 	
     ProgressDialog pd;
     String playlist;
-    String[] ids;
     
-    public LongRunningPostPlaylist(String t, String[] idss){
+    public LongRunningPostPlaylist(String t){
     	playlist = t;
-    	ids = idss;
     	
     }
     
@@ -609,10 +612,8 @@ public class LongRunningPostPlaylist extends AsyncTask <Void, Void, String> {
 			StatusLine stl = response.getStatusLine();
 			HttpEntity ent = response.getEntity();
 			String res = String.valueOf(stl.getStatusCode());
-			//System.out.println(res);
-			if(res.equals("201")){
+			if(res.equals("201")  ){
 				String src = EntityUtils.toString(ent);
-				//System.out.println(src);
 				JSONObject result = new JSONObject(src);
     			Playlist p = new Playlist(playlist, Integer.parseInt(result.getString("id")));
     	     	User.getInstance().addPlaylist(p);
@@ -647,6 +648,67 @@ public class LongRunningPostPlaylist extends AsyncTask <Void, Void, String> {
 		}
 	}
 }    
+
+public class LongRunningGetImages extends AsyncTask <Void, Void, String> {
+
+	ProgressDialog pd;
+
+	
+	public LongRunningGetImages(){
+	}
+	
+    public Object fetch(String address) throws MalformedURLException, IOException{
+		URL url = new URL(address);
+		Object content = url.getContent();
+		return content;
+    	
+    }
+    
+
+    private Drawable ImageOperations(Context ctx, String url) {
+        try {
+            InputStream is = (InputStream) this.fetch(url);
+            Drawable d = Drawable.createFromStream(is, "src");
+            return d;
+        } catch (MalformedURLException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+    
+   @Override
+   protected void onPreExecute(){
+	    pd = new ProgressDialog(context);
+      	pd.setMessage("Loading...");
+      	pd.setCancelable(false);
+      	pd.setIndeterminate(true);
+      	pd.show();
+   }
+   
+   @Override 
+   protected void onPostExecute(final String s){
+	   pd.dismiss();
+   }
+	@Override
+	protected String doInBackground(Void... params) {
+		try {
+			String currentUrl;
+        	for(int i = 0; i < CurrentPL.getInstance().getNumSongs(); ++i){
+
+        		currentUrl = CurrentPL.getInstance().getSong(i).getCover();
+					drawable.add(ImageOperations(context,currentUrl));
+					CurrentPL.getInstance().getSong(i).setCoverDrawablePointer(drawable.size()-1);
+        	}
+        	finished = 1;
+		} catch (Exception ex) {
+			return null;
+		}
+       
+		return null;
+	}
+
+}
 
 	
 	

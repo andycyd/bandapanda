@@ -233,7 +233,6 @@ public class AlbumView extends FragmentActivity {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200")){
     				String src = EntityUtils.toString(ent);
-    				//System.out.println(src);
     				// {album_title, cover_url, artist_id, artist_name, album_genre, album_year, album_songs: [song_id, song_track, song_title, audio_url]* }
     				JSONObject result = new JSONObject(src);
     				albumInf.setName(result.getString("album_title"));
@@ -242,18 +241,15 @@ public class AlbumView extends FragmentActivity {
     				albumInf.setNameArt(result.getString("artist_name"));
     				albumInf.setIDart(Integer.parseInt(result.getString("artist_id")));
     				albumInf.setGenre(result.getString("album_genre"));
-    				System.out.println("album year: "+result.getString("album_year"));
     				albumInf.setYear(Integer.parseInt(result.getString("album_year")));
     				JSONArray songs = result.getJSONArray("album_songs");
     				for (int i = 0; i < songs.length(); ++i) {
     				    JSONObject rec = songs.getJSONObject(i);
     				    int ID = Integer.parseInt(rec.getString("song_id"));
-    				    System.out.println("Prueba 4");
     					String title = rec.getString("song_title");
     					int track = Integer.parseInt(rec.getString("song_track"));
     					String url = getString(R.string.resources_url)+rec.getString("audio_url");
     					Song s = new Song(ID, title, albumInf.getID(), albumInf.getName(), albumInf.getIDart(), albumInf.getNameArt(), albumInf.getCover(), -1,  url);
-    					System.out.println("Prueba 3");
     					s.setTrack(track);
     					albumInf.addSong(s);
     				}
@@ -268,7 +264,6 @@ public class AlbumView extends FragmentActivity {
     	
     	
 		protected void onPostExecute(String results) {
-			System.out.println(results);
     		if(results.equals("200")){
 			}
 			else{

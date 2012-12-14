@@ -454,7 +454,6 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
         
        @Override
        protected void onPreExecute(){
-            System.out.println("Empieza dialog");
     	    pd = new ProgressDialog(context);
           	pd.setMessage("Searching...");
           	pd.setCancelable(false);
@@ -464,7 +463,6 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
        
        @Override 
        protected void onPostExecute(final String s){
-    	   System.out.println("Acaba");
     	   finished = 1;
     	   pd.dismiss();
        }
@@ -486,7 +484,6 @@ public class MusicPlayer extends Activity implements OnCompletionListener, SeekB
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
             Log.d(this.getClass().getName(), "back button pressed");
-            System.out.println("pulsado back");
             mHandler.removeCallbacks(mUpdateTimeTask);
         }
         return super.onKeyDown(keyCode, event);

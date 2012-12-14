@@ -176,22 +176,23 @@ public class User {
 	                    
 	                    CharSequence contentTitle = "~ BandaPanda ~";
 	    				JSONObject result;
-	        			CharSequence contentText = null;
+	        			
 						try {
 							result = new JSONObject(message);
-							if(!result.getString("event").equals("connection_established") && !result.getString("event").equals("pusher:error") && !result.getString("event").equals("pusher:heartbeat")){
 							
+							if(!result.getString("event").equals("connection_established") && !result.getString("event").equals("pusher:error") && !result.getString("event").equals("pusher:heartbeat")){
+								CharSequence contentText = (new JSONObject(result.getString("data"))).getString("source_username");
 								if(result.getString("event").equals("song_recommendation")){
-									contentText = "Someone has recommended you a song";
+									contentText = contentText+" has recommended you a song";
 								}
 								if(result.getString("event").equals("album_recommendation")){
-									contentText = "Someone has recommended you an album";
+									contentText = contentText+" has recommended you an album";
 								}
 								if(result.getString("event").equals("artist_recommendation")){
-									contentText = "Someone has recommended you an artist";
+									contentText = contentText+" has recommended you an artist";
 								}
 								if(result.getString("event").equals("playlist_recommendation")){
-									contentText = "Someone has recommended you a playlist";
+									contentText = contentText+" has recommended you a playlist";
 								}
 
 								Intent notificationIntent = new Intent(context, RecommendationsView.class);

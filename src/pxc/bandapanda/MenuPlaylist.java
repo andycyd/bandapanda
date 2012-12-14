@@ -1,16 +1,12 @@
 package pxc.bandapanda;
 
 import java.io.IOException;
-import websocket.*;
-import pusherclient.*;
-import pusherclient.Pusher.Channel;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -26,48 +22,29 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import pxc.bandapanda.Search.LongRunningGetImages;
-import pxc.bandapanda.Search.LongRunningGetSearchUsers;
-import pxc.bandapanda.Search.LongRunningPostInsertSongPlaylist;
-import pxc.bandapanda.Search.LongRunningPostRecommend;
-
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.ViewPager;
-import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 
 public class MenuPlaylist extends FragmentActivity {
    public static Context context;
@@ -180,7 +157,7 @@ public class MenuPlaylist extends FragmentActivity {
     private void crearMenu(final int position){
     	AlertDialog.Builder b = new AlertDialog.Builder(context);
     	b.setTitle(User.getInstance().getPlaylists().get(position).getName());
-    	CharSequence[] item = {"Play","Delete","Watch songs","Change Name", "Share"};
+    	CharSequence[] item = {"Play","Delete","Watch songs","Share"};
     	b.setItems(item, new DialogInterface.OnClickListener() {
 			@SuppressWarnings("deprecation")
 			public void onClick(DialogInterface dialog, int which) {
@@ -238,6 +215,17 @@ public class MenuPlaylist extends FragmentActivity {
 					lrgop.execute();
 					while(finished != 1);
 					numSongs = User.getInstance().getPlaylists().get(position).getNumSongs();
+				    if(numSongs == 0){
+				    	AlertDialog alert = new AlertDialog.Builder(context).create();
+						alert.setTitle("Can't play");
+						alert.setMessage("No songs for this playlist");
+						alert.setButton("Close",new DialogInterface.OnClickListener() {
+							public void onClick(final DialogInterface dialog, final int which) {
+							}
+						});
+						alert.show();
+				    	return;
+				    }
 				    LongRunningGetImages lrgi = new LongRunningGetImages(position);
 			    	finished = 0;
 			    	lrgi.execute();
@@ -251,7 +239,7 @@ public class MenuPlaylist extends FragmentActivity {
                 	i.putExtras(b);
 	             	startActivity(i);
 				}
-				if(which == 4){
+				if(which == 3){
 					recommendPlaylist(User.getInstance().getPlaylists().get(position).getID(), User.getInstance().getPlaylists().get(position).getName());
 					
 				}
@@ -335,8 +323,6 @@ public class MenuPlaylist extends FragmentActivity {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
-
-    				//System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -347,7 +333,6 @@ public class MenuPlaylist extends FragmentActivity {
     				}
     			}
 				finished = 1;
-    			//System.out.println(String.valueOf(stl.getStatusCode()));
     			return String.valueOf(stl.getStatusCode());
     		} catch (Exception e) {
     			System.out.println("Error"+e.getLocalizedMessage());
@@ -410,15 +395,6 @@ public class MenuPlaylist extends FragmentActivity {
     		try {
     			HttpResponse response = httpClient.execute(httpget, localContext);
     			StatusLine stl = response.getStatusLine();
-    			int res = stl.getStatusCode();
-    			// OJO! quizas falta comprovar que response status sea 200
-    			/*
-    			 * 
-    			 * 
-    			 * FALTA TRATAR QUE NOS DEVUELVA UNA PARTE DE LAS CANCIONES, AHORA SOLO DEVUELVE UNA PARTE DE LAS CANCIONES
-    			 * 
-    			 * 
-    			 */
     			HttpEntity ent = response.getEntity();
     			String src = EntityUtils.toString(ent);
     			JSONObject result = new JSONObject(src);
@@ -549,7 +525,6 @@ public class MenuPlaylist extends FragmentActivity {
 							else a++;
 						}
 					}
-					//System.out.println(User.getInstance().getPlaylists().get(position).getSong(i).getCoverDrawablePointer());
 	        	}
 	        	finished = 1;
 			} catch (Exception ex) {
@@ -589,13 +564,13 @@ public class MenuPlaylist extends FragmentActivity {
     		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
     		nameValuePairs.add(new BasicNameValuePair("name",playlist));
 
-			JSONArray array = new JSONArray();
-    		nameValuePairs.add(new BasicNameValuePair("songs",array.toString()));
+			//JSONArray array = new JSONArray();
+    		//nameValuePairs.add(new BasicNameValuePair("songs",array.toString()));
     		HttpContext localContext = new BasicHttpContext();
     		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+User.getInstance().getId()+"/playlists.json");
     		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
     		try {
-				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
 			} catch (UnsupportedEncodingException e1) {
 				e1.printStackTrace();
 			}
@@ -604,10 +579,9 @@ public class MenuPlaylist extends FragmentActivity {
     			StatusLine stl = response.getStatusLine();
     			HttpEntity ent = response.getEntity();
     			String res = String.valueOf(stl.getStatusCode());
-    			//System.out.println(res);
+    			
     			if(res.equals("201")){
     				String src = EntityUtils.toString(ent);
-    				//System.out.println(src);
     				JSONObject result = new JSONObject(src);
         			Playlist p = new Playlist(playlist, Integer.parseInt(result.getString("id")));
         	     	User.getInstance().addPlaylist(p);
@@ -670,8 +644,6 @@ public class LongRunningDeletePlaylist extends AsyncTask <Void, Void, String> {
 		try {
 			HttpResponse response = httpClient.execute(httpdelete, localContext);
 			StatusLine stl = response.getStatusLine();
-			String res = String.valueOf(stl.getStatusCode());
-			System.out.println("Holaa " +res);
 			finished = 1;
 			return String.valueOf(stl.getStatusCode());
 		} catch (Exception e) {
@@ -711,7 +683,6 @@ public class LongRunningGetSearchUsers extends AsyncTask <Void, Void, String> {
     protected void onPreExecute(){
 
 	    pd = new ProgressDialog(context);
-
        	pd.setMessage("Searching...");
        	pd.setCancelable(false);
        	pd.setIndeterminate(true);
@@ -800,7 +771,6 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpContext localContext = new BasicHttpContext();
 		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type=playlist&resource_id="+resource);
-		//System.out.println(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type="+type+"&resource_id="+resource);
 		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
 		try {
 			HttpResponse response = httpClient.execute(httppost, localContext);
@@ -815,7 +785,6 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 	
 	@SuppressWarnings("deprecation")
 	protected void onPostExecute(String results) {
-		System.out.println("corigo retorno: "+results);
 		if(results.equals("201")){
 			
 		}
@@ -833,13 +802,6 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 		}
 	}
 } 
-
-private void hideInputMethod(){  
-	TextView srch = (TextView) findViewById(R.id.searchText);
-    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);  
-    imm.hideSoftInputFromWindow(srch.getWindowToken(), 0);  
-}
-
 
 
     

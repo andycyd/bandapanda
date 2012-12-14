@@ -19,7 +19,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -27,7 +26,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
-import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -44,15 +42,11 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -189,7 +183,6 @@ public class Search extends FragmentActivity {
 		finished = 0;
 		lrgs.execute();
 		while(finished != 1);
-		//System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
 		numSongs = resSearchSongs.size();
 		LongRunningGetCovers lrgc = new LongRunningGetCovers();
     	finished = 0;
@@ -258,8 +251,6 @@ public class Search extends FragmentActivity {
 		finished = 0;
 		lrgsa.execute();
 		while(finished != 1);
-
-		//System.out.println("Canciones buscadas: "+Integer.toString(resSearchSongs.size()));
 		numAlbums = resSearchAlbums.size();
 		LongRunningGetCoverAlbums lrgi = new LongRunningGetCoverAlbums();
     	finished = 0;
@@ -270,7 +261,6 @@ public class Search extends FragmentActivity {
     	finallayout.setOrientation(1);
     	int i;
     	for(i = 0; i < numAlbums; ++i){
-    		//System.out.println("Bucle "+i);
     		final LinearLayout layout1 = new LinearLayout(context);
     		LinearLayout vertical1 = new LinearLayout(context);
     		vertical1.setOrientation(1);
@@ -333,7 +323,6 @@ public class Search extends FragmentActivity {
     	finallayout.setOrientation(1);
     	int i;
     	for(i = 0; i < numArtists; ++i){
-    		//System.out.println("Bucle "+i);
     		final LinearLayout layout1 = new LinearLayout(context);
     		LinearLayout vertical1 = new LinearLayout(context);
     		vertical1.setOrientation(1);
@@ -583,7 +572,6 @@ public class Search extends FragmentActivity {
         @Override
         public synchronized Object instantiateItem(View collection,int position){
         	ScrollView scroll = new ScrollView(context);
-        	//System.out.println(position);
             ((ViewPager) collection).addView(scroll,position);
             return scroll;
         }
@@ -881,7 +869,6 @@ public class Search extends FragmentActivity {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
-    				//System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -981,8 +968,6 @@ public class LongRunningGetSearchArtist extends AsyncTask <Void, Void, String> {
     			String res = String.valueOf(stl.getStatusCode());
     			if(res.equals("200") || res.equals("206")){
     				String src = EntityUtils.toString(ent);
-
-    				//System.out.println(src);
     				JSONArray result = new JSONArray(src);
     				for (int i = 0; i < result.length(); ++i) {
     				    JSONObject rec = result.getJSONObject(i);
@@ -1077,8 +1062,6 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 			String res = String.valueOf(stl.getStatusCode());
 			if(res.equals("200") || res.equals("206")){
 				String src = EntityUtils.toString(ent);
-
-				//System.out.println(src);
 				JSONArray result = new JSONArray(src);
 				for (int i = 0; i < result.length(); ++i) {
 				    JSONObject rec = result.getJSONObject(i);
@@ -1173,8 +1156,6 @@ public class LongRunningGetSearchAlbum extends AsyncTask <Void, Void, String> {
 			try {
 				HttpResponse response = httpClient.execute(httppost, localContext);
 				StatusLine stl = response.getStatusLine();
-				String res = String.valueOf(stl.getStatusCode());
-				//System.out.println(res);
 				finished = 1;
 				return String.valueOf(stl.getStatusCode());
 			} catch (Exception e) {
@@ -1305,7 +1286,6 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpContext localContext = new BasicHttpContext();
 		HttpPost httppost = new HttpPost(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type="+type+"&resource_id="+resource);
-		System.out.println(getString(R.string.api_url)+"/users/"+user+"/recommendations.json?type="+type+"&resource_id="+resource);
 		httppost.setHeader("X-AUTH-TOKEN", User.getInstance().getToken());
 		try {
 			HttpResponse response = httpClient.execute(httppost, localContext);
@@ -1320,9 +1300,7 @@ public class LongRunningPostRecommend extends AsyncTask <Void, Void, String> {
 	
 	@SuppressWarnings("deprecation")
 	protected void onPostExecute(String results) {
-		System.out.println("corigo retorno: "+results);
 		if(results.equals("201")){
-			
 		}
 		else{
 
